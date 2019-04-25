@@ -1,0 +1,65 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '2.1.4.RELEASE'
+	id "io.spring.dependency-management" version "1.0.7.RELEASE"
+	id 'org.owasp.dependencycheck' version '5.0.0-M2'
+    id 'com.diffplug.gradle.spotless' version '3.20.0'
+}
+
+group = 'com.connexta.ingest'
+version = '0.1.0-SNAPSHOT'
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation('org.apache.tomcat.embed:tomcat-embed-websocket:9.0.19') {
+		force = true
+		because 'CVE-2019-0232 in the transitive tomcat-embed-websocket dependency'
+	}
+	implementation('org.apache.tomcat.embed:tomcat-embed-core:9.0.19') {
+		force = true
+		because 'CVE-2019-0232 in the transitive tomcat-embed-core dependency'
+	}
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+allprojects {
+
+    sourceCompatibility = 1.11
+    targetCompatibility = 1.11
+
+    spotless {
+        java {
+            licenseHeaderFile rootProject.file("license.java")
+            removeUnusedImports()
+            googleJavaFormat()
+            trimTrailingWhitespace()
+        }
+    }
+
+    buildscript {
+        repositories {
+            mavenLocal()
+            mavenCentral()
+        }
+    }
+}
+
+dependencyCheck {
+  failBuildOnCVSS = 4
+  failOnError = true
+  // To configure a suppression file once we start adding in dependencies:
+  //suppressionFile = 'config/dependencyCheck/suppressions.xml'
+}
