@@ -18,7 +18,7 @@ pipeline {
     }
     environment {
         GITHUB_USERNAME = 'connexta'
-        GITHUB_REPONAME = 'ion-ingest'
+        GITHUB_REPONAME = 'ingest'
     }
     stages {
         stage('Setup') {

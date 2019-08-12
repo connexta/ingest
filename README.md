@@ -1,4 +1,4 @@
-# Ion-Ingest
+# Ingest
 ## PUT ON HOLD SEE [multi-int-store/ingest](https://github.com/connexta/multi-int-store)
 
 ## Building
