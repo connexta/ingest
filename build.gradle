@@ -26,6 +26,28 @@ plugins {
     id "org.sonarqube" version "2.7.1"
 }
 
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven { url "http://nexus.phx.connexta.com:8081/nexus/content/repositories/ion-releases/" }
+}
+
+dependencies {
+    annotationProcessor "org.projectlombok:lombok:1.18.8"
+    compileOnly "org.projectlombok:lombok:1.18.8"
+    implementation "com.connexta.ingest:ingest-api-rest-spring-stubs:0.4.0"
+    implementation "com.connexta.transformation:transformation-api-rest-spring-stubs:0.1.0"
+    implementation "commons-io:commons-io:2.6"
+    implementation "javax.inject:javax.inject:1"
+    implementation "io.springfox:springfox-swagger2:2.9.2"
+    implementation "io.springfox:springfox-swagger-ui:2.9.2"
+    implementation "org.springframework.boot:spring-boot-starter-actuator:2.1.7.RELEASE"
+    implementation "org.springframework.boot:spring-boot-starter-web:2.1.7.RELEASE"
+    testImplementation "junit:junit:4.12"
+    testImplementation "org.mockito:mockito-core:3.0.0"
+    testImplementation "org.springframework.boot:spring-boot-starter-test:2.1.7.RELEASE"
+}
+
 sourceCompatibility = 1.11
 targetCompatibility = 1.11
 
@@ -51,23 +73,8 @@ ext.configArgs = [
 configurations.all {
     resolutionStrategy {
         force "com.fasterxml.jackson.core:jackson-databind:[2.9.9.3,)"
+        force "com.google.guava:guava:[24.1.1,)"
     }
-}
-
-dependencies {
-    annotationProcessor "org.projectlombok:lombok:1.18.8"
-    compileOnly "org.projectlombok:lombok:1.18.8"
-    implementation "com.connexta.ion.ingest:ingest-api-rest-spring-stubs:0.3.0"
-    implementation "com.connexta.transformation:transformation-api-rest-spring-stubs:0.1.0"
-    implementation "commons-io:commons-io:2.6"
-    implementation "javax.inject:javax.inject:1"
-    implementation "io.springfox:springfox-swagger2:2.9.2"
-    implementation "io.springfox:springfox-swagger-ui:2.9.2"
-    implementation "org.springframework.boot:spring-boot-starter-actuator:2.1.7.RELEASE"
-    implementation "org.springframework.boot:spring-boot-starter-web:2.1.7.RELEASE"
-    testImplementation "junit:junit:4.12"
-    testImplementation "org.mockito:mockito-core:3.0.0"
-    testImplementation "org.springframework.boot:spring-boot-starter-test:2.1.7.RELEASE"
 }
 
 dependencyCheck {
@@ -120,12 +127,6 @@ tasks.withType(Test) {
 }
 
 tasks.withType(Test, TestLogger.configs(project.configArgs))
-
-repositories {
-    mavenLocal()
-    mavenCentral()
-    maven { url "http://nexus.phx.connexta.com:8081/nexus/content/repositories/ion-releases/" }
-}
 
 task listDependencies(type: DependencyReportTask)
 
