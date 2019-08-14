@@ -1,65 +1,134 @@
+/*
+ * Copyright (c) 2019 Connexta, LLC
+ *
+ * Released under the GNU Lesser General Public License version 3; see
+ * https://www.gnu.org/licenses/lgpl-3.0.html
+ */
+/* Build Script */
+import org.gradle.internal.jvm.Jvm
+
+buildscript {
+    repositories {
+        maven { url "https://plugins.gradle.org/m2/" }
+    }
+    dependencies {
+        classpath "gradle.plugin.com.palantir.gradle.docker:gradle-docker:0.22.1"
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:2.1.7.RELEASE"
+    }
+}
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '2.1.4.RELEASE'
-	id "io.spring.dependency-management" version "1.0.7.RELEASE"
-	id 'org.owasp.dependencycheck' version '5.0.0-M2'
-    id 'com.diffplug.gradle.spotless' version '3.20.0'
+    id "com.diffplug.gradle.spotless" version "3.24.1"
+    id "java"
+    id "com.palantir.docker" version "0.22.1"
+    id "maven"
+    id "org.owasp.dependencycheck" version "5.2.1"
+    id "org.springframework.boot" version "2.1.7.RELEASE"
+    id "org.sonarqube" version "2.7.1"
 }
 
-group = 'com.connexta.ingest'
-version = '0.1.0-SNAPSHOT'
+sourceCompatibility = 1.11
+targetCompatibility = 1.11
 
-configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
+if (sourceCompatibility != Jvm.current().javaVersion) {
+    throw new Exception("You need Java ${sourceCompatibility} to build and run ${project.name}.\n" +
+            "The current version installed is ${Jvm.current().javaVersion.majorVersion}.\n" +
+            "For further reading see: \n\t> " +
+            "https://github.com/connexta/ion-ingest#prerequisites")
+}
+
+spotless {
+    File licenseFile = rootProject.file("license.java")
+    format "misc", SpotlessConfig.getMisc()
+    java SpotlessConfig.getJava(licenseFile)
+    groovyGradle SpotlessConfig.getGroovy(licenseFile)
+}
+
+ext.configArgs = [
+        "parallel"  : project.hasProperty("parallel"),
+        "skipITests": project.hasProperty("skipITests"),
+]
+
+configurations.all {
+    resolutionStrategy {
+        force "com.fasterxml.jackson.core:jackson-databind:[2.9.9.3,)"
+    }
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation('org.apache.tomcat.embed:tomcat-embed-websocket:9.0.19') {
-		force = true
-		because 'CVE-2019-0232 in the transitive tomcat-embed-websocket dependency'
-	}
-	implementation('org.apache.tomcat.embed:tomcat-embed-core:9.0.19') {
-		force = true
-		because 'CVE-2019-0232 in the transitive tomcat-embed-core dependency'
-	}
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    annotationProcessor "org.projectlombok:lombok:1.18.8"
+    compileOnly "org.projectlombok:lombok:1.18.8"
+    implementation "com.connexta.ion.ingest:ingest-api-rest-spring-stubs:0.3.0"
+    implementation "com.connexta.transformation:transformation-api-rest-spring-stubs:0.1.0"
+    implementation "commons-io:commons-io:2.6"
+    implementation "javax.inject:javax.inject:1"
+    implementation "io.springfox:springfox-swagger2:2.9.2"
+    implementation "io.springfox:springfox-swagger-ui:2.9.2"
+    implementation "org.springframework.boot:spring-boot-starter-actuator:2.1.7.RELEASE"
+    implementation "org.springframework.boot:spring-boot-starter-web:2.1.7.RELEASE"
+    testImplementation "junit:junit:4.12"
+    testImplementation "org.mockito:mockito-core:3.0.0"
+    testImplementation "org.springframework.boot:spring-boot-starter-test:2.1.7.RELEASE"
 }
+
+dependencyCheck {
+    failBuildOnCVSS = 4
+    failOnError = true
+
+    analyzers {
+        ossIndexEnabled = false
+    }
+
+    // Add support for NVD mirror
+    if (project.hasProperty("dependencyCheckUrlModified") && project.hasProperty("dependencyCheckUrlBase")) {
+        println "Using NVD Mirrors: ${dependencyCheckUrlBase} and ${dependencyCheckUrlModified}"
+        cve {
+            urlModified = "${dependencyCheckUrlModified}"
+            urlBase = "${dependencyCheckUrlBase}"
+        }
+    }
+}
+
+processResources {
+    expand([transformApiVersion: "0.1.0"])
+}
+
+dependencyCheck {
+    suppressionFile = "${projectDir}/owasp-suppressions.xml"
+}
+
+springBoot {
+    mainClassName = "com.connexta.ingest.IngestApplication"
+}
+
+bootJar {
+    launchScript()
+}
+
+docker {
+    files tasks.bootJar.outputs
+    name "cnxta/cdr-ingest:${project.version}"
+    buildArgs([JAR_FILE: "${tasks.bootJar.outputs.files.singleFile.name}"])
+}
+
+tasks.withType(Test) {
+    //  Forces Gradle to always run the tests, regardless if they are up to date or not.
+    outputs.upToDateWhen { false }
+
+    if (project.configArgs["skipITests"]) {
+        exclude "**/*IntegrationTest*"
+    }
+}
+
+tasks.withType(Test, TestLogger.configs(project.configArgs))
 
 repositories {
     mavenLocal()
     mavenCentral()
+    maven { url "http://nexus.phx.connexta.com:8081/nexus/content/repositories/ion-releases/" }
 }
 
-allprojects {
+task listDependencies(type: DependencyReportTask)
 
-    sourceCompatibility = 1.11
-    targetCompatibility = 1.11
-
-    spotless {
-        java {
-            licenseHeaderFile rootProject.file("license.java")
-            removeUnusedImports()
-            googleJavaFormat()
-            trimTrailingWhitespace()
-        }
-    }
-
-    buildscript {
-        repositories {
-            mavenLocal()
-            mavenCentral()
-        }
-    }
-}
-
-dependencyCheck {
-  failBuildOnCVSS = 4
-  failOnError = true
-  // To configure a suppression file once we start adding in dependencies:
-  //suppressionFile = 'config/dependencyCheck/suppressions.xml'
-}
+assemble.finalizedBy("docker")
+build.finalizedBy("docker")
+bootRun.dependsOn(build)
