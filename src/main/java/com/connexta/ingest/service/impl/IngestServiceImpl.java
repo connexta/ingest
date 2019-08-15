@@ -1,29 +1,46 @@
 /*
- * Copyright (c) Connexta
+ * Copyright (c) 2019 Connexta, LLC
  *
- * This is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation, either version 3
- * of the License, or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details. A copy of the
- * GNU Lesser General Public License is distributed along with this
- * program and can be found at http://www.gnu.org/licenses/lgpl.html.
+ * Released under the GNU Lesser General Public License version 3; see
+ * https://www.gnu.org/licenses/lgpl-3.0.html
  */
 package com.connexta.ingest.service.impl;
 
-import com.connexta.ingest.service.api.IngestRequest;
-import com.connexta.ingest.service.api.IngestResponse;
+import com.connexta.ingest.client.StoreClient;
+import com.connexta.ingest.client.TransformClient;
+import com.connexta.ingest.exceptions.StoreException;
+import com.connexta.ingest.exceptions.TransformException;
 import com.connexta.ingest.service.api.IngestService;
-import org.springframework.stereotype.Service;
+import java.io.InputStream;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import lombok.extern.slf4j.Slf4j;
 
-@Service
+@Slf4j
 public class IngestServiceImpl implements IngestService {
+
+  @NotNull private final StoreClient storeClient;
+  @NotNull private final TransformClient transformClient;
+
+  public IngestServiceImpl(
+      @NotNull final StoreClient storeClient, @NotNull final TransformClient transformClient) {
+    this.storeClient = storeClient;
+    this.transformClient = transformClient;
+  }
+
   @Override
-  public IngestResponse ingest(IngestRequest request) {
-    return null;
+  public void ingest(
+      @NotNull @Min(1L) @Max(10737418240L) final Long fileSize,
+      @NotBlank final String mimeType,
+      @NotNull final InputStream inputStream,
+      @NotBlank final String fileName)
+      throws StoreException, TransformException {
+    final String location = storeClient.store(fileSize, mimeType, inputStream, fileName).toString();
+    log.info("{} has been successfully stored and can be downloaded at {}", fileName, location);
+
+    transformClient.requestTransform(fileSize, mimeType, location);
+    log.info("Successfully submitted a transform request for {}", fileName);
   }
 }
