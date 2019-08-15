@@ -17,7 +17,7 @@ configurations {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation('org.apache.tomcat.embed:tomcat-embed-websocket:9.0.19') {
+	implementation('org.apache.tomcat.embed:tomcat-embed-websocket:9.0.22') {
 		force = true
 		because 'CVE-2019-0232 in the transitive tomcat-embed-websocket dependency'
 	}
