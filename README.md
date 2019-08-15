@@ -57,14 +57,83 @@ deployment. The configuration YAML files can be found under: `<PROJECT_ROOT>/con
 The properties in these files will be merged with any properties that you have configured in the service. The properties
 in the external config file take precedence over config files that are built with the service.
 
+## Running
+### Run Locally
+Start the service using one of the following:
+* [`docker-compose`](#start-the-service-locally-via-docker-compose)
+* [`docker stack`](#start-the-service-locally-via-docker-stack)
+
+To determine the ports assigned to the services:
+```bash
+docker-compose ps
+```
+
+#### Start the Service Locally via `docker-compose`
+1. A Docker network named `cdr` is needed to run via docker-compose.
+
+    1. Determine if the network already exists:
+        ```bash
+        docker network ls
+        ```
+        If the network exists, the output includes a reference to it:
+        ```bash
+        NETWORK ID          NAME                DRIVER              SCOPE
+        zk0kg1knhd6g        cdr                 overlay             swarm
+        ```
+    2. If the network has not been created:
+        ```bash
+        docker network create --driver=overlay --attachable cdr
+        ```
+2. Start the Docker service:
+    ```bash
+    docker-compose up -d
+    ```
+
+##### Helpful `docker-compose` Commands
+* To stop the Docker service:
+    ```bash
+    docker-compose down
+    ```
+* To stream the logs to the console:
+    ```bash
+    docker-compose logs
+    ```
+* To stream the logs to the console for a specific service:
+    ```bash
+    docker-compose logs -f <service_name>
+    ```
+
+#### Start the Service Locally via `docker stack`
+```bash
+docker stack deploy -c docker-compose.yml cdr
+```
+
+##### Helpful `docker stack` Commands
+* To stop the Docker service:
+    ```bash
+    docker stack rm cdr
+    ```
+* To check the status of all services in the stack:
+    ```bash
+    docker stack services cdr
+    ```
+* To stream the logs to the console:
+    ```bash
+    docker service logs
+    ```
+* To stream the logs to the console for a specific service:
+    ```bash
+    docker service logs -f <service_name>
+    ```
+
 ## Inspecting
-The MIS service is deployed with (Springfox) **Swagger UI**. This library uses Spring Boot
+The Ingest service is deployed with (Springfox) **Swagger UI**. This library uses Spring Boot
 annotations to create documentation for the service endpoints. To view Swagger UI in a local
 deployment, enter this URL into a web browser:
 
-`http://127.0.0.1:9041/swagger-ui.html`
+`http://127.0.0.1:9040/swagger-ui.html`
 
-The Ingest and MIS services are deployed with Spring Boot Actuator. To view the Actuator
+The Ingest is deployed with Spring Boot Actuator. To view the Actuator
 endpoints in a local deployment, enter this URL into a web browser:
 
-`http://127.0.0.1:9041/actuator/`
+`http://127.0.0.1:9040/actuator/`
