@@ -133,7 +133,7 @@ deployment, enter this URL into a web browser:
 
 `http://127.0.0.1:9040/swagger-ui.html`
 
-The Ingest is deployed with Spring Boot Actuator. To view the Actuator
+The Ingest service is deployed with Spring Boot Actuator. To view the Actuator
 endpoints in a local deployment, enter this URL into a web browser:
 
 `http://127.0.0.1:9040/actuator/`

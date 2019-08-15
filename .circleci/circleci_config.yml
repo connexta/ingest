@@ -20,8 +20,8 @@ jobs:
             echo "export LINUX_MVN_RANDOM=-Djava.security.egd=file:/dev/./urandom" >> $BASH_ENV
             echo "export COVERAGE_EXCLUSIONS=**/test/**/*,**/itests/**/*,**/*Test*,**/sdk/**/*,**/*.js,**/node_modules/**/*,**/jaxb/**/*,**/wsdl/**/*,**/nces/sws/**/*,**/*.adoc,**/*.txt,**/*.xml" >> $BASH_ENV
             echo "export GITHUB_USERNAME=connexta" >> $BASH_ENV
-            echo "export GITHUB_REPONAME=multi-int-store" >> $BASH_ENV
-            echo "export GITHUB_KEY=multi-int-store-github-key" >> $BASH_ENV
+            echo "export GITHUB_REPONAME=ion-ingest" >> $BASH_ENV
+            echo "export GITHUB_KEY=ion-ingest-github-key" >> $BASH_ENV
             echo "export ORG_GRADLE_PROJECT_dependencyCheckUrlModified='http://10.101.190.7:10179/nvdcve-1.0-modified.json.gz'" >> $BASH_ENV
             echo "export ORG_GRADLE_PROJECT_dependencyCheckUrlBase='http://10.101.190.7:10179/nvdcve-1.0-%d.json.gz'" >> $BASH_ENV
             source $BASH_ENV
@@ -51,7 +51,7 @@ jobs:
             then
               if [ $RELEASE = true ]
               then
-                ./gradlew sonarqube -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_TOKEN -Dsonar.organization=cx -Dsonar.projectKey=multi-int-store
+                ./gradlew sonarqube -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_TOKEN -Dsonar.organization=cx -Dsonar.projectKey=ion-ingest
               fi
             fi
 workflows:
