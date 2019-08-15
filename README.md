@@ -1,5 +1,7 @@
 # Ion-Ingest
-## PUT ON HOLD SEE [multi-int-store/ingest](https://github.com/connexta/multi-int-store)
+[![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=connexta/ion-ingest)](https://dependabot.com)
+[![Known Vulnerabilities](https://snyk.io/test/github/connexta/ion-ingest/badge.svg)](https://snyk.io/test/github/connexta/ion-ingest)
+[![CircleCI](https://circleci.com/gh/connexta/ion-ingest/tree/master.svg?style=svg)](https://circleci.com/gh/connexta/ion-ingest/tree/master)
 
 ## Building
 `./gradlew build`
