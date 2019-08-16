@@ -1,9 +1,9 @@
 FROM openjdk:11-jre-slim
 LABEL maintainer=connexta
-LABEL com.connexta.application.name=cdr-ingest
+LABEL com.connexta.application.name=ion-ingest
 ARG JAR_FILE
-COPY ${JAR_FILE} /cdr-ingest
-ENTRYPOINT ["/cdr-ingest"]
+COPY ${JAR_FILE} /ion-ingest
+ENTRYPOINT ["/ion-ingest"]
 EXPOSE 8080 10040 10050
 # Enable JMX so the JVM can be monitored
 # NOTE: The exposed JMX port number must be the same as the port number published in the docker compose or stack file.

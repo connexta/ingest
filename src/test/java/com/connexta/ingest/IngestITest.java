@@ -43,7 +43,7 @@ import org.springframework.web.client.RestTemplate;
 @SpringBootTest
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
-public class IngestApplicationIntegrationTest {
+public class IngestITest {
 
   private static final byte[] TEST_FILE = "some-content".getBytes();
 

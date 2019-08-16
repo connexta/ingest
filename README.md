@@ -105,17 +105,17 @@ docker-compose ps
 
 #### Start the Service Locally via `docker stack`
 ```bash
-docker stack deploy -c docker-compose.yml cdr
+docker stack deploy -c docker-compose.yml ingest-stack
 ```
 
 ##### Helpful `docker stack` Commands
 * To stop the Docker service:
     ```bash
-    docker stack rm cdr
+    docker stack rm ingest-stack
     ```
 * To check the status of all services in the stack:
     ```bash
-    docker stack services cdr
+    docker stack services ingest-stack
     ```
 * To stream the logs to the console:
     ```bash
