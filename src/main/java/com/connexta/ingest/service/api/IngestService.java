@@ -14,7 +14,7 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
-/** Provides clients with a way to ingest Products into ION for processing and storage */
+/** Provides clients with a way to ingest Products for processing and storage */
 public interface IngestService {
 
   void ingest(
