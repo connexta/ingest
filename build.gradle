@@ -124,6 +124,11 @@ tasks.withType(Test, TestLogger.configs(project.configArgs))
 
 task listDependencies(type: DependencyReportTask)
 
+task deploy(type: Exec) {
+    dependsOn build
+    commandLine "./deploy.bash"
+}
+
 assemble.finalizedBy("docker")
 build.finalizedBy("docker")
 bootRun.dependsOn(build)

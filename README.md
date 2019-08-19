@@ -1,4 +1,4 @@
-# Ion-Ingest
+# Ingest
 [![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=connexta/ion-ingest)](https://dependabot.com)
 [![Known Vulnerabilities](https://snyk.io/test/github/connexta/ion-ingest/badge.svg)](https://snyk.io/test/github/connexta/ion-ingest)
 [![CircleCI](https://circleci.com/gh/connexta/ion-ingest/tree/master.svg?style=svg)](https://circleci.com/gh/connexta/ion-ingest/tree/master)
@@ -51,64 +51,47 @@ For more information about spotless checks see
 * The integration tests require a Docker daemon.
 * To skip integration tests, add `-PskipITests`.
 
-## Configuration
-Services can be configured with an external configuration file that will be applied to the docker container during
-deployment. The configuration YAML files can be found under: `<PROJECT_ROOT>/configs/` and are not verison-controlled.
-The properties in these files will be merged with any properties that you have configured in the service. The properties
-in the external config file take precedence over config files that are built with the service.
-
 ## Running
-### Run Locally
-Start the service using one of the following:
-* [`docker-compose`](#start-the-service-locally-via-docker-compose)
-* [`docker stack`](#start-the-service-locally-via-docker-stack)
+### Configuring
+1. The service can be configured with external configuration files that will be applied to the docker container during deployment.
+    The configuration YAML files can be found at `<PROJECT_ROOT>/configs/` and are not version-controlled.
+    The properties in these files will be merged with any properties that you have configured in the service.
+    The properties in the external config files take precedence over config files that are built with the service.
 
-To determine the ports assigned to the services:
-```bash
-docker-compose ps
-```
-
-#### Start the Service Locally via `docker-compose`
-1. A Docker network named `cdr` is needed to run via docker-compose.
-
-    1. Determine if the network already exists:
-        ```bash
-        docker network ls
-        ```
-        If the network exists, the output includes a reference to it:
-        ```bash
-        NETWORK ID          NAME                DRIVER              SCOPE
-        zk0kg1knhd6g        cdr                 overlay             swarm
-        ```
-    2. If the network has not been created:
-        ```bash
-        docker network create --driver=overlay --attachable cdr
-        ```
-2. Start the Docker service:
-    ```bash
-    docker-compose up -d
+    Example configs/ingest_config.yml:
+    ```yaml
+    endpointUrl:
+      store: http://store-stack_store:9041/mis/product/
     ```
 
-##### Helpful `docker-compose` Commands
-* To stop the Docker service:
-    ```bash
-    docker-compose down
-    ```
-* To stream the logs to the console:
-    ```bash
-    docker-compose logs
-    ```
-* To stream the logs to the console for a specific service:
-    ```bash
-    docker-compose logs -f <service_name>
+    Example configs/transform_config.yml:
+    ```yaml
+    endpointUrl:
+      transform: http://transform:9090/transform/
     ```
 
-#### Start the Service Locally via `docker stack`
+2. A Docker network named `cdr` is needed to run via docker-compose.
+
+    Determine if the network already exists:
+    ```bash
+    docker network ls
+    ```
+    If the network exists, the output includes a reference to it:
+    ```bash
+    NETWORK ID          NAME                DRIVER              SCOPE
+    zk0kg1knhd6g        cdr                 overlay             swarm
+    ```
+    If the network has not been created:
+    ```bash
+    docker network create --driver=overlay --attachable cdr
+    ```
+
+### Running Locally via `docker stack`
 ```bash
 docker stack deploy -c docker-compose.yml ingest-stack
 ```
 
-##### Helpful `docker stack` Commands
+#### Helpful `docker stack` Commands
 * To stop the Docker service:
     ```bash
     docker stack rm ingest-stack
@@ -117,23 +100,33 @@ docker stack deploy -c docker-compose.yml ingest-stack
     ```bash
     docker stack services ingest-stack
     ```
-* To stream the logs to the console:
-    ```bash
-    docker service logs
-    ```
 * To stream the logs to the console for a specific service:
     ```bash
     docker service logs -f <service_name>
     ```
 
+### Running in the Cloud
+There are two ways to configure the build system to deploy the service to a cloud:
+- Edit the `deploy.bash` file. Set two variables near the top of the file:
+  - `SET_DOCKER_REG="ip:port"`
+  - `SET_DOCKER_W="/path/to/docker/wrapper/"`
+
+OR
+
+- Avoid editing a file in source control by exporting values:
+    ```bash
+    export DOCKER_REGISTRY="ip:port"
+    export DOCKER_WRAPPER="/path/to/docker/wrapper/"
+    ```
+
+After configuring the build system:
+```bash
+./gradlew deploy
+```
+
 ## Inspecting
-The Ingest service is deployed with (Springfox) **Swagger UI**. This library uses Spring Boot
-annotations to create documentation for the service endpoints. To view Swagger UI in a local
-deployment, enter this URL into a web browser:
-
-`http://127.0.0.1:9040/swagger-ui.html`
-
-The Ingest service is deployed with Spring Boot Actuator. To view the Actuator
-endpoints in a local deployment, enter this URL into a web browser:
-
-`http://127.0.0.1:9040/actuator/`
+The service is deployed with (Springfox) **Swagger UI**.
+This library uses Spring Boot annotations to create documentation for the service endpoints.
+The `/swagger-ui.html` endpoint can be used to view Swagger UI.
+The service is also deployed with Spring Boot Actuator.
+The `/actuator` endpoint can be used to view the Actuator.
