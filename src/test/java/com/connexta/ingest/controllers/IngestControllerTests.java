@@ -15,7 +15,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.web.multipart.MultipartFile;
 
-public class IngestControllerTest {
+public class IngestControllerTests {
 
   @Test(expected = ValidationException.class)
   public void ingest() throws IOException {
