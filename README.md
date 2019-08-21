@@ -61,7 +61,7 @@ For more information about spotless checks see
     Example configs/ingest_config.yml:
     ```yaml
     endpointUrl:
-      store: http://store-stack_store:9041/mis/product/
+      store: http://store-stack_store:9042/mis/product/
     ```
 
     Example configs/transform_config.yml:
