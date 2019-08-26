@@ -127,7 +127,7 @@ public class IngestITests {
         "NOT_IMPLEMENTED",
         "INTERNAL_SERVER_ERROR"
       })
-  public void testStoreRequestBadRequest(HttpStatus status) throws Exception {
+  public void testStoreRequests(HttpStatus status) throws Exception {
     storeServer
         .expect(requestTo(endpointUrlStore))
         .andExpect(method(HttpMethod.POST))
