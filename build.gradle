@@ -45,7 +45,9 @@ dependencies {
     testCompile "org.junit.jupiter:junit-jupiter-params:5.5.1"
     testImplementation "org.junit.jupiter:junit-jupiter-api:5.5.1"
     testImplementation "org.mockito:mockito-core:3.0.0"
-    testImplementation "org.springframework.boot:spring-boot-starter-test:2.1.7.RELEASE"
+    testImplementation("org.springframework.boot:spring-boot-starter-test:2.1.7.RELEASE") {
+        exclude group: "junit", module: "junit" // excludes JUnit 4
+    }
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.5.1"
 }
 
@@ -57,6 +59,10 @@ if (sourceCompatibility != Jvm.current().javaVersion) {
             "The current version installed is ${Jvm.current().javaVersion.majorVersion}.\n" +
             "For further reading see: \n\t> " +
             "https://github.com/connexta/ion-ingest#prerequisites")
+}
+
+test {
+    useJUnitPlatform()
 }
 
 spotless {
