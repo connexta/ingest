@@ -15,18 +15,13 @@ services:
       restart_policy:
         condition: any
     configs:
-      - source: ingest_config
-        target: /configs/ingest_config.yml
       - source: transform_config
         target: /configs/transform_config.yml
     command:
-      - "--spring.config.additional-location=file:/configs/ingest_config.yml"
       - "--spring.config.additional-location=file:/configs/transform_config.yml"
 networks:
   cdr:
     external: true
 configs:
-  ingest_config:
-    file: ./configs/ingest_config.yml
   transform_config:
     file: ./configs/transform_config.yml
