@@ -6,16 +6,15 @@
  */
 package com.connexta.ingest.controllers;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+
 import com.connexta.ingest.service.api.IngestService;
+import java.io.IOException;
+import javax.validation.ValidationException;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.web.multipart.MultipartFile;
-
-import javax.validation.ValidationException;
-import java.io.IOException;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
 
 public class IngestControllerTests {
 
