@@ -3,15 +3,22 @@ spring:
     multipart:
       max-file-size: 10GB
       max-request-size: 11GB
+
 logging:
   level:
     org.springframework.web.filter.CommonsRequestLoggingFilter: DEBUG
     org.springframework.web.client: DEBUG
+
 management:
   endpoints:
     web:
       exposure:
         include: "*"
+
 endpoints:
   transform:
     version: ${transformApiVersion}
+
+# The store endpoint should be deployed in the same network, so we don't need a config.yml file for it.
+endpointUrl:
+  store: http://store:8080/mis/product/

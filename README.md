@@ -58,16 +58,10 @@ For more information about spotless checks see
     The properties in these files will be merged with any properties that you have configured in the service.
     The properties in the external config files take precedence over config files that are built with the service.
 
-    Example configs/ingest_config.yml:
-    ```yaml
-    endpointUrl:
-      store: http://store-stack_store:9042/mis/product/
-    ```
-
     Example configs/transform_config.yml:
     ```yaml
     endpointUrl:
-      transform: http://transform:9090/transform/
+      transform: http://localhost:9090/transform/
     ```
 
 2. A Docker network named `cdr` is needed to run via docker-compose.
