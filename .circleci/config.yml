@@ -1,0 +1,83 @@
+version: 2.1
+orbs:
+  anchore: anchore/anchore-engine@1.4.0
+jobs:
+  Full Build:
+    machine:
+      image: circleci/classic:latest
+      docker_layer_caching: true
+    steps:
+      - checkout
+      - run:
+          name: Install java 11
+          command: |
+            sudo add-apt-repository ppa:openjdk-r/ppa
+            sudo apt-get update -q
+            sudo apt install -y openjdk-11-jdk
+      - run:
+          name: Set default java 11
+          command:
+            sudo update-java-alternatives --set java-1.11.0-openjdk-amd64
+      - run:
+          name: Building
+          command: |
+            ./gradlew clean build --info
+      - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - store_test_results:
+          path: ~/test-results
+      - store_artifacts:
+          path: ~/test-results/junit
+      - run: mkdir -p workspace
+      - run:
+          command: 'docker save cnxta/ion-ingest > workspace/ion-ingest.tar'
+      - persist_to_workspace:
+          root: workspace
+          paths:
+            - ion-ingest.tar
+  OWASP:
+    docker:
+      - image: circleci/openjdk:11-jdk
+    steps:
+      - checkout
+      - run:
+          name: OWASP
+          command: |
+            ./gradlew dependencyCheckAnalyze --info
+  Scan Docker Image:
+    executor: anchore/anchore_engine
+    steps:
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - checkout
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          command: 'ls -al /tmp/workspace'
+      - run:
+          command: 'docker load -i /tmp/workspace/ion-ingest.tar'
+      - anchore/analyze_local_image:
+          dockerfile_path: ./Dockerfile
+          image_name: 'cnxta/ion-ingest'
+          policy_bundle_file_path: .circleci/.anchore/policy_bundle.json
+          policy_failure: true
+          timeout: '500'
+      - anchore/parse_reports
+      - store_artifacts:
+          path: anchore-reports
+workflows:
+  version: 2.1
+  default:
+    jobs:
+      - Full Build
+      - OWASP:
+          requires:
+            - Full Build
+# TODO Find a way to suppress vulnerabilities and/or upgrade container dependencies
+#      - Scan Docker Image:
+#          requires:
+#            - Full Build

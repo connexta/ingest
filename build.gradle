@@ -24,28 +24,31 @@ plugins {
 }
 
 group = "com.connexta.ingest"
-version = "0.1.0-SNAPSHOT"
 
 repositories {
     mavenLocal()
     mavenCentral()
-    maven { url "http://nexus.phx.connexta.com:8081/nexus/content/repositories/ion-releases/" }
+    maven { url "https://artifacts.codice.org/content/repositories/ion-releases/" }
 }
 
 dependencies {
     annotationProcessor "org.projectlombok:lombok:1.18.8"
     compileOnly "org.projectlombok:lombok:1.18.8"
-    implementation "com.connexta.ingest:ingest-api-rest-spring-stubs:0.4.0"
-    implementation "com.connexta.transformation:transformation-api-rest-spring-stubs:0.1.0"
+    implementation "com.connexta.ingest:ingest-api-rest-spring-stubs:0.4.2"
+    implementation "com.connexta.transformation:transformation-api-rest-spring-stubs:0.1.2"
     implementation "commons-io:commons-io:2.6"
     implementation "javax.inject:javax.inject:1"
     implementation "io.springfox:springfox-swagger2:2.9.2"
     implementation "io.springfox:springfox-swagger-ui:2.9.2"
     implementation "org.springframework.boot:spring-boot-starter-actuator:2.1.7.RELEASE"
     implementation "org.springframework.boot:spring-boot-starter-web:2.1.7.RELEASE"
-    testImplementation "junit:junit:4.12"
+    testCompile "org.junit.jupiter:junit-jupiter-params:5.5.1"
+    testImplementation "org.junit.jupiter:junit-jupiter-api:5.5.1"
     testImplementation "org.mockito:mockito-core:3.0.0"
-    testImplementation "org.springframework.boot:spring-boot-starter-test:2.1.7.RELEASE"
+    testImplementation("org.springframework.boot:spring-boot-starter-test:2.1.7.RELEASE") {
+        exclude group: "junit", module: "junit" // excludes JUnit 4
+    }
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.5.1"
 }
 
 sourceCompatibility = 1.11
@@ -56,6 +59,10 @@ if (sourceCompatibility != Jvm.current().javaVersion) {
             "The current version installed is ${Jvm.current().javaVersion.majorVersion}.\n" +
             "For further reading see: \n\t> " +
             "https://github.com/connexta/ion-ingest#prerequisites")
+}
+
+test {
+    useJUnitPlatform()
 }
 
 spotless {
@@ -107,7 +114,7 @@ bootJar {
 
 docker {
     files tasks.bootJar.outputs
-    name "cnxta/ion-ingest:${project.version}"
+    name "cnxta/ion-ingest"
     buildArgs([JAR_FILE: "${tasks.bootJar.outputs.files.singleFile.name}"])
 }
 
