@@ -6,23 +6,28 @@
  */
 package com.connexta.ingest.controllers;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 
 import com.connexta.ingest.service.api.IngestService;
 import java.io.IOException;
 import javax.validation.ValidationException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.web.multipart.MultipartFile;
 
 public class IngestControllerTests {
 
-  @Test(expected = ValidationException.class)
+  @Test
   public void ingest() throws IOException {
     IngestService service = mock(IngestService.class);
     MultipartFile multipartFile = mock(MultipartFile.class);
     Mockito.doThrow(new IOException()).when(multipartFile).getInputStream();
     IngestController controller = new IngestController(service);
-    controller.ingest("nothing", multipartFile, "also nothing");
+    assertThrows(
+        ValidationException.class,
+        () -> {
+          controller.ingest("nothing", multipartFile, "also nothing");
+        });
   }
 }
