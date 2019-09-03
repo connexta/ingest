@@ -4,10 +4,10 @@ services:
     image: ${REGISTRY:-docker.io}/cnxta/ion-ingest
     ports:
       - target: 8080
-        published: 9040
+        published: 9043
         protocol: tcp
       - target: 10050
-        published: 10050
+        published: 10053
         protocol: tcp
     networks:
       - cdr
