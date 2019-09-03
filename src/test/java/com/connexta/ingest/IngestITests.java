@@ -46,7 +46,7 @@ import org.springframework.web.client.RestTemplate;
 public class IngestITests {
 
   private static final byte[] TEST_FILE = "some-content".getBytes();
-  private static final byte[] TEST_METACARD = "metacard0-content".getBytes();
+  private static final byte[] TEST_METACARD = "metacard-content".getBytes();
 
   @Value("${endpointUrl.store}")
   private String endpointUrlStore;
