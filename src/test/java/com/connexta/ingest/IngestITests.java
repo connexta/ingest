@@ -117,6 +117,18 @@ public class IngestITests {
         .andExpect(status().isAccepted());
   }
 
+  @Test
+  public void testIngestRequestWithMissingMetacard() throws Exception {
+    mvc.perform(
+            multipart("/ingest")
+                .file("file", TEST_FILE)
+                .param("correlationId", "000f4e4a")
+                .header("Accept-Version", "1.2.1")
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.MULTIPART_FORM_DATA))
+        .andExpect(status().isBadRequest());
+  }
+
   /* START store request tests */
 
   @ParameterizedTest
