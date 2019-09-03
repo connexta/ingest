@@ -33,23 +33,17 @@ public class IngestController implements IngestApi {
 
   @Override
   public ResponseEntity<Void> ingest(
-      String acceptVersion, MultipartFile multipartFile, String correlationId) {
-    String mediaType = multipartFile.getContentType();
-    String fileName = multipartFile.getOriginalFilename();
-    Long fileSize = multipartFile.getSize();
-    log.info(
-        "Ingest request received acceptVersion={}, fileName={}, fileSize={}, mediaType={}",
-        acceptVersion,
-        fileName,
-        fileSize,
-        mediaType);
+      String acceptVersion, MultipartFile file, String correlationId, MultipartFile metacard) {
+    String fileName = file.getOriginalFilename();
+    log.info("Ingest request received fileName={}", fileName);
+    log.info("Ignoring attached metacard");
     InputStream inputStream;
     try {
-      inputStream = multipartFile.getInputStream();
+      inputStream = file.getInputStream();
     } catch (IOException e) {
       throw new ValidationException("Could not open attachment");
     }
-    ingestService.ingest(fileSize, mediaType, inputStream, fileName);
+    ingestService.ingest(file.getSize(), file.getContentType(), inputStream, fileName);
 
     return ResponseEntity.accepted().build();
   }

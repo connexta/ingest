@@ -46,6 +46,7 @@ import org.springframework.web.client.RestTemplate;
 public class IngestITests {
 
   private static final byte[] TEST_FILE = "some-content".getBytes();
+  private static final byte[] TEST_METACARD = "metacard-content".getBytes();
 
   @Value("${endpointUrl.store}")
   private String endpointUrlStore;
@@ -108,11 +109,24 @@ public class IngestITests {
     mvc.perform(
             multipart("/ingest")
                 .file("file", TEST_FILE)
+                .file("metacard", TEST_METACARD)
                 .param("correlationId", "000f4e4a")
                 .header("Accept-Version", "1.2.1")
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.MULTIPART_FORM_DATA))
         .andExpect(status().isAccepted());
+  }
+
+  @Test
+  public void testIngestRequestWithMissingMetacard() throws Exception {
+    mvc.perform(
+            multipart("/ingest")
+                .file("file", TEST_FILE)
+                .param("correlationId", "000f4e4a")
+                .header("Accept-Version", "1.2.1")
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.MULTIPART_FORM_DATA))
+        .andExpect(status().isBadRequest());
   }
 
   /* START store request tests */
@@ -138,6 +152,7 @@ public class IngestITests {
     mvc.perform(
             multipart("/ingest")
                 .file("file", TEST_FILE)
+                .file("metacard", TEST_METACARD)
                 .param("correlationId", "000f4e4a")
                 .header("Accept-Version", "1.2.1")
                 .accept(MediaType.APPLICATION_JSON)
@@ -169,6 +184,7 @@ public class IngestITests {
     mvc.perform(
             multipart("/ingest")
                 .file("file", TEST_FILE)
+                .file("metacard", TEST_METACARD)
                 .param("correlationId", "000f4e4a")
                 .header("Accept-Version", "1.2.1")
                 .accept(MediaType.APPLICATION_JSON)
