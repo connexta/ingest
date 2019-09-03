@@ -4,13 +4,13 @@ LABEL com.connexta.application.name=ion-ingest
 ARG JAR_FILE
 COPY ${JAR_FILE} /ion-ingest
 ENTRYPOINT ["/ion-ingest"]
-EXPOSE 8080 10040 10050
+EXPOSE 8080 10043 10053
 # Enable JMX so the JVM can be monitored
 # NOTE: The exposed JMX port number must be the same as the port number published in the docker compose or stack file.
-ENV JAVA_TOOL_OPTIONS "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:10050 \
+ENV JAVA_TOOL_OPTIONS "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:10053 \
 -Dcom.sun.management.jmxremote \
--Dcom.sun.management.jmxremote.port=10040 \
--Dcom.sun.management.jmxremote.rmi.port=10040 \
+-Dcom.sun.management.jmxremote.port=10043 \
+-Dcom.sun.management.jmxremote.rmi.port=10043 \
 -Dcom.sun.management.jmxremote.ssl=false \
 -Dcom.sun.management.jmxremote.authenticate=false \
 -Djava.rmi.server.hostname=0.0.0.0 \
