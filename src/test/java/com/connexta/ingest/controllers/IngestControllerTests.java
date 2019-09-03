@@ -22,12 +22,13 @@ public class IngestControllerTests {
   public void ingest() throws IOException {
     IngestService service = mock(IngestService.class);
     MultipartFile multipartFile = mock(MultipartFile.class);
+    MultipartFile metacard = mock(MultipartFile.class);
     Mockito.doThrow(new IOException()).when(multipartFile).getInputStream();
     IngestController controller = new IngestController(service);
     assertThrows(
         ValidationException.class,
         () -> {
-          controller.ingest("nothing", multipartFile, "also nothing");
+          controller.ingest("nothing", multipartFile, "also nothing", metacard);
         });
   }
 }

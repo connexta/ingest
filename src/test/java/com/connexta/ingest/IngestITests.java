@@ -46,6 +46,7 @@ import org.springframework.web.client.RestTemplate;
 public class IngestITests {
 
   private static final byte[] TEST_FILE = "some-content".getBytes();
+  private static final byte[] TEST_METACARD = "metacard0-content".getBytes();
 
   @Value("${endpointUrl.store}")
   private String endpointUrlStore;
@@ -108,6 +109,7 @@ public class IngestITests {
     mvc.perform(
             multipart("/ingest")
                 .file("file", TEST_FILE)
+                .file("metacard", TEST_METACARD)
                 .param("correlationId", "000f4e4a")
                 .header("Accept-Version", "1.2.1")
                 .accept(MediaType.APPLICATION_JSON)
@@ -138,6 +140,7 @@ public class IngestITests {
     mvc.perform(
             multipart("/ingest")
                 .file("file", TEST_FILE)
+                .file("metacard", TEST_METACARD)
                 .param("correlationId", "000f4e4a")
                 .header("Accept-Version", "1.2.1")
                 .accept(MediaType.APPLICATION_JSON)
@@ -169,6 +172,7 @@ public class IngestITests {
     mvc.perform(
             multipart("/ingest")
                 .file("file", TEST_FILE)
+                .file("metacard", TEST_METACARD)
                 .param("correlationId", "000f4e4a")
                 .header("Accept-Version", "1.2.1")
                 .accept(MediaType.APPLICATION_JSON)
