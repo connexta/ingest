@@ -11,7 +11,7 @@ buildscript {
         lombokVersion = "1.18.10"
         springBootVersion = "2.1.9.RELEASE"
         springfoxSwaggerVersion = "2.9.2"
-        transformApiVersion = "0.1.2"
+        transformApiVersion = "0.2.0"
     }
     repositories {
         maven { url "https://plugins.gradle.org/m2/" }
@@ -39,6 +39,7 @@ repositories {
 dependencies {
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    implementation "com.amazonaws:aws-java-sdk-s3:1.11.646"
     implementation "com.connexta.ingest:ingest-api-rest-spring-stubs:0.5.0"
     implementation "com.connexta.transformation:transformation-api-rest-spring-stubs:${transformApiVersion}"
     implementation "commons-io:commons-io:2.6"
@@ -49,10 +50,12 @@ dependencies {
     implementation "org.springframework.boot:spring-boot-starter-web:${springBootVersion}"
     testCompile "org.junit.jupiter:junit-jupiter-params:${junitJupiterVersion}"
     testCompile "org.mockito:mockito-junit-jupiter:3.1.0"
+    testCompile "org.testcontainers:junit-jupiter:1.12.2"
     testImplementation "org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}"
     testImplementation("org.springframework.boot:spring-boot-starter-test:${springBootVersion}") {
         exclude group: "junit", module: "junit" // excludes JUnit 4
     }
+    testImplementation "org.springframework.boot:spring-boot-starter-webflux:${springBootVersion}"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}"
 }
 

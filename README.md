@@ -58,11 +58,32 @@ For more information about spotless checks see
     The properties in these files will be merged with any properties that you have configured in the service.
     The properties in the external config files take precedence over config files that are built with the service.
 
+    Example configs/ingest_config.yml:
+    ```yaml
+    endpointUrl:
+      retrieve: http://localhost:9040/
+    ```
+
+    Example configs/s3_config.yml:
+    ```yaml
+    s3:
+      endpointUrl: http://minio:9000
+      region: local
+      bucket: metacard-quarantine
+    ```
+
     Example configs/transform_config.yml:
     ```yaml
     endpointUrl:
       transform: http://localhost:9090/transform/
     ```
+
+    The service is capable of storing data in an S3-compatible data store.
+    The configuration to access S3 is found as a list of commands under the store service in the `docker-compose.yml` file.
+    Here you can change the endpoint URL, the S3 bucket name, and the credentials the service will use to connect to S3.
+    The `docker-compose.yml` file uses docker secrets for the access key and secret key.
+    The key values are stored in files called `s3_access.sec` and `s3_secret.sec`.
+    These files must be in the same directory as the `docker-compose.yml` and are not version-controlled.
 
 2. A Docker network named `cdr` is needed to run via docker-compose.
 

@@ -6,7 +6,9 @@
  */
 package com.connexta.ingest.service.api;
 
+import com.connexta.ingest.adaptors.MetacardRetrieveResponse;
 import com.connexta.ingest.exceptions.StoreException;
+import com.connexta.ingest.exceptions.StoreMetacardException;
 import com.connexta.ingest.exceptions.TransformException;
 import java.io.InputStream;
 import javax.validation.constraints.Max;
@@ -21,6 +23,10 @@ public interface IngestService {
       @NotNull @Min(1L) @Max(10737418240L) final Long fileSize,
       @NotBlank final String mimeType,
       @NotNull final InputStream inputStream,
-      @NotBlank final String fileName)
-      throws StoreException, TransformException;
+      @NotBlank final String fileName,
+      @NotNull @Min(1L) @Max(10737418240L) final Long metacardFileSize,
+      @NotNull final InputStream metacardInputStream)
+      throws StoreException, TransformException, StoreMetacardException;
+
+  MetacardRetrieveResponse retrieveMetacard(@NotBlank final String id);
 }

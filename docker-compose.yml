@@ -4,24 +4,46 @@ services:
     image: ${REGISTRY:-docker.io}/cnxta/ion-ingest
     ports:
       - target: 8080
-        published: 9043
+        published: 9040
         protocol: tcp
-      - target: 10053
-        published: 10053
+      - target: 10050
+        published: 10050
         protocol: tcp
     networks:
       - cdr
     deploy:
       restart_policy:
         condition: any
+    secrets:
+     - source: s3_secret
+       target: /secrets/ingest/s3_secret.sec
+     - source: s3_access
+       target: /secrets/ingest/s3_access.sec
     configs:
+      - source: ingest_config
+        target: /configs/ingest_config.yml
+      - source: s3_config
+        target: /configs/s3_config.yml
       - source: transform_config
         target: /configs/transform_config.yml
     command:
+      - "--spring.config.additional-location=file:/configs/ingest_config.yml"
+      - "--s3.secret.file=/secrets/ingest/s3_secret.sec"
+      - "--s3.access.file=/secrets/ingest/s3_access.sec"
+      - "--spring.config.additional-location=file:/configs/s3_config.yml"
       - "--spring.config.additional-location=file:/configs/transform_config.yml"
 networks:
   cdr:
     external: true
+secrets:
+  s3_secret:
+    file: s3_secret.sec
+  s3_access:
+    file: s3_access.sec
 configs:
+  ingest_config:
+    file: ./configs/ingest_config.yml
+  s3_config:
+    file: ./configs/s3_config.yml
   transform_config:
     file: ./configs/transform_config.yml

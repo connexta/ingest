@@ -7,9 +7,11 @@
 package com.connexta.ingest.config;
 
 import com.connexta.ingest.client.TransformClient;
+import javax.inject.Named;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
@@ -17,9 +19,14 @@ import org.springframework.web.client.RestTemplate;
 @Configuration
 public class TransformClientConfiguration {
 
+  @Bean("transformClientRestTemplate")
+  public RestTemplate restTemplate(@NotNull RestTemplateBuilder builder) {
+    return builder.build();
+  }
+
   @Bean
   public TransformClient transformClient(
-      @NotNull RestTemplate restTemplate,
+      @NotNull @Named("transformClientRestTemplate") RestTemplate restTemplate,
       @NotBlank @Value("${endpointUrl.transform}") String transformEndpoint,
       @NotBlank @Value("${endpoints.transform.version}") String transformApiVersion) {
     return new TransformClient(restTemplate, transformEndpoint, transformApiVersion);
