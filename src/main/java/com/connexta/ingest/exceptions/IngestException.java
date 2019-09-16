@@ -10,6 +10,7 @@ import com.connexta.ingest.common.exceptions.DetailedResponseStatusException;
 import org.springframework.http.HttpStatus;
 
 public class IngestException extends DetailedResponseStatusException {
+
   public IngestException(String reason, Throwable cause) {
     super(HttpStatus.INTERNAL_SERVER_ERROR, reason, cause);
     addDetail("Caused by " + cause.getMessage());
