@@ -86,17 +86,18 @@ public class IngestITests {
 
   @Test
   public void testSuccessfulIngestRequest() throws Exception {
-    final String location = "http://localhost:1232/store/1234";
+    final URI location = new URI("http://localhost:1232/store/1234");
     storeServer
         .expect(requestTo(endpointUrlStore))
         .andExpect(method(HttpMethod.POST))
-        .andRespond(withCreatedEntity(new URI(location)));
+        // TODO verify media type
+        .andRespond(withCreatedEntity(location));
 
     transformServer
         .expect(requestTo(endpointUrlTransform))
         .andExpect(method(HttpMethod.POST))
         .andExpect(header("Accept-Version", endpointsTransformVersion))
-        .andExpect(jsonPath("$.location").value(location))
+        .andExpect(jsonPath("$.location").value(location.toString())) // TODO assert URI, not String
         .andRespond(
             withStatus(HttpStatus.ACCEPTED)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -168,17 +169,17 @@ public class IngestITests {
   // transformation endpoint.
   @Test
   public void testUnsuccessfulTransformRequest() throws Exception {
-    final String location = "http://localhost:1232/store/1234";
+    final URI location = new URI("http://localhost:1232/store/1234");
     storeServer
         .expect(requestTo(endpointUrlStore))
         .andExpect(method(HttpMethod.POST))
-        .andRespond(withCreatedEntity(new URI(location)));
+        .andRespond(withCreatedEntity(location));
 
     transformServer
         .expect(requestTo(endpointUrlTransform))
         .andExpect(method(HttpMethod.POST))
         .andExpect(header("Accept-Version", endpointsTransformVersion))
-        .andExpect(jsonPath("$.location").value(location))
+        .andExpect(jsonPath("$.location").value(location.toString())) // TODO assert URI, not String
         .andRespond(withServerError());
 
     mvc.perform(

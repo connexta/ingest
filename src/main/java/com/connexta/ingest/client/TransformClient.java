@@ -8,6 +8,7 @@ package com.connexta.ingest.client;
 
 import com.connexta.ingest.exceptions.TransformException;
 import com.connexta.transformation.rest.models.TransformRequest;
+import java.net.URI;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
@@ -27,17 +28,15 @@ public class TransformClient {
   @NotBlank private final String transformApiVersion;
 
   public void requestTransform(
-      @NotNull @Min(1L) @Max(10737418240L) final Long fileSize,
+      final URI location,
       @NotBlank final String mimeType,
-      @NotBlank final String location)
+      @NotNull @Min(1L) @Max(10737418240L) final Long fileSize)
       throws TransformException {
     final HttpHeaders headers = new HttpHeaders();
     headers.set("Accept-Version", transformApiVersion);
 
-    final TransformRequest transformRequest = new TransformRequest();
-    transformRequest.setBytes(fileSize);
-    transformRequest.setMimeType(mimeType);
-    transformRequest.setLocation(location);
+    final TransformRequest transformRequest =
+        new TransformRequest().location(location.toString()).mimeType(mimeType).bytes(fileSize);
 
     final HttpEntity<TransformRequest> transformRequestHttpEntity =
         new HttpEntity<>(transformRequest, headers);
