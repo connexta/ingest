@@ -28,7 +28,7 @@ public class TransformClient {
   @NotBlank private final String transformApiVersion;
 
   public void requestTransform(
-      final URI location,
+      @NotNull final URI location,
       @NotBlank final String mimeType,
       @NotNull @Min(1L) @Max(10737418240L) final Long fileSize)
       throws TransformException {
