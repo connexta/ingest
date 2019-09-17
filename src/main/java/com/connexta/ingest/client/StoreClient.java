@@ -37,8 +37,6 @@ public class StoreClient {
       @NotBlank final String fileName)
       throws StoreException {
     final MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-    body.add("fileSize", fileSize);
-    body.add("mimeType", mimeType);
     body.add(
         "file",
         new InputStreamResource(inputStream) {
@@ -53,7 +51,6 @@ public class StoreClient {
             return fileName;
           }
         });
-    body.add("fileName", fileName);
 
     final HttpHeaders headers = new HttpHeaders();
     headers.set("Accept-Version", "0.1.0");
