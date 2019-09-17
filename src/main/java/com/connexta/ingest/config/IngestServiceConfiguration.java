@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class IngestServiceConfiguration {
+
   @Bean
   public IngestService ingestService(
       @NotNull StoreClient storeClient, @NotNull TransformClient transformClient) {

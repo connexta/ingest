@@ -18,6 +18,7 @@ import org.springframework.core.annotation.AliasFor;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface DetailedResponseStatus {
+
   /** Alias for {@link #code}. */
   @AliasFor("code")
   int value() default -1;

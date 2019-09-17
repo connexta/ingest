@@ -13,6 +13,7 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpEntity;
@@ -22,18 +23,11 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 @Slf4j
+@AllArgsConstructor
 public class StoreClient {
 
   @NotNull private final RestTemplate restTemplate;
-
   @NotBlank private final String storeEndpoint;
-
-  public StoreClient(
-      @NotNull final RestTemplate restTemplate, @NotBlank final String storeEndpoint) {
-    this.restTemplate = restTemplate;
-    this.storeEndpoint = storeEndpoint;
-    log.info("Store URL: {}", storeEndpoint);
-  }
 
   /** @return the location of the product */
   public URI store(

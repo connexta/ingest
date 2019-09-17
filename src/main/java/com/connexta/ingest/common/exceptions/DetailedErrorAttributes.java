@@ -22,6 +22,7 @@ import org.springframework.web.context.request.WebRequest;
  */
 @Component
 public class DetailedErrorAttributes extends DefaultErrorAttributes {
+
   @Override
   public Map<String, Object> getErrorAttributes(WebRequest request, boolean includeStackTrace) {
     final Map<String, Object> errorAttributes =

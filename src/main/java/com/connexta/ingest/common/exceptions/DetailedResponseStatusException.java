@@ -19,8 +19,10 @@ import org.springframework.web.server.ResponseStatusException;
  * about the error.
  */
 public class DetailedResponseStatusException extends ResponseStatusException implements Detailable {
+
   private final int code;
   private final List<String> details;
+
   /**
    * Constructor with a response status.
    *

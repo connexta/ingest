@@ -16,19 +16,15 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@AllArgsConstructor
 public class IngestServiceImpl implements IngestService {
 
   @NotNull private final StoreClient storeClient;
   @NotNull private final TransformClient transformClient;
-
-  public IngestServiceImpl(
-      @NotNull final StoreClient storeClient, @NotNull final TransformClient transformClient) {
-    this.storeClient = storeClient;
-    this.transformClient = transformClient;
-  }
 
   @Override
   public void ingest(

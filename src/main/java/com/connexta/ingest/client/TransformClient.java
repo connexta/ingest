@@ -12,27 +12,19 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.client.RestTemplate;
 
 @Slf4j
+@AllArgsConstructor
 public class TransformClient {
 
   @NotNull private final RestTemplate restTemplate;
   @NotBlank private final String transformEndpoint;
   @NotBlank private final String transformApiVersion;
-
-  public TransformClient(
-      @NotNull RestTemplate restTemplate,
-      @NotBlank String transformEndpoint,
-      @NotBlank String transformApiVersion) {
-    this.restTemplate = restTemplate;
-    this.transformEndpoint = transformEndpoint;
-    this.transformApiVersion = transformApiVersion;
-    log.info("Transformation Service URL={} version={}", transformEndpoint, transformApiVersion);
-  }
 
   public void requestTransform(
       @NotNull @Min(1L) @Max(10737418240L) final Long fileSize,

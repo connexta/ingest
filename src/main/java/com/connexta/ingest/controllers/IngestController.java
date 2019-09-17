@@ -11,6 +11,8 @@ import com.connexta.ingest.service.api.IngestService;
 import java.io.IOException;
 import java.io.InputStream;
 import javax.validation.ValidationException;
+import javax.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,18 +20,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @RestController
+@AllArgsConstructor
 public class IngestController implements IngestApi {
 
-  private final IngestService ingestService;
-
-  /**
-   * Constructs a new REST Spring Web controller.
-   *
-   * @param ingestService service where requests will be forwarded
-   */
-  public IngestController(IngestService ingestService) {
-    this.ingestService = ingestService;
-  }
+  @NotNull private final IngestService ingestService;
 
   @Override
   public ResponseEntity<Void> ingest(

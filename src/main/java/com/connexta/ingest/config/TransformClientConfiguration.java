@@ -16,6 +16,7 @@ import org.springframework.web.client.RestTemplate;
 
 @Configuration
 public class TransformClientConfiguration {
+
   @Bean
   public TransformClient transformClient(
       @NotNull RestTemplate restTemplate,
