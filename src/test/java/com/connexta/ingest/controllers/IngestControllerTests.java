@@ -7,28 +7,30 @@
 package com.connexta.ingest.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.doThrow;
 
 import com.connexta.ingest.service.api.IngestService;
 import java.io.IOException;
 import javax.validation.ValidationException;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.multipart.MultipartFile;
 
+@ExtendWith(MockitoExtension.class)
 public class IngestControllerTests {
 
   @Test
-  public void ingest() throws IOException {
-    IngestService service = mock(IngestService.class);
-    MultipartFile multipartFile = mock(MultipartFile.class);
-    MultipartFile metacard = mock(MultipartFile.class);
-    Mockito.doThrow(new IOException()).when(multipartFile).getInputStream();
-    IngestController controller = new IngestController(service);
+  public void ingest(
+      @Mock final MultipartFile mockFile,
+      @Mock final IngestService mockIngestService,
+      @Mock final MultipartFile mockMetacard)
+      throws Exception {
+    doThrow(IOException.class).when(mockFile).getInputStream();
+    final IngestController ingestController = new IngestController(mockIngestService);
     assertThrows(
         ValidationException.class,
-        () -> {
-          controller.ingest("nothing", multipartFile, "also nothing", metacard);
-        });
+        () -> ingestController.ingest("nothing", mockFile, "also nothing", mockMetacard));
   }
 }
