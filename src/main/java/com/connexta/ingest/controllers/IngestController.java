@@ -6,7 +6,6 @@
  */
 package com.connexta.ingest.controllers;
 
-import com.connexta.ingest.adaptors.MetacardRetrieveResponse;
 import com.connexta.ingest.exceptions.StoreMetacardException;
 import com.connexta.ingest.rest.spring.IngestApi;
 import com.connexta.ingest.service.api.IngestService;
@@ -19,6 +18,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,6 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 @AllArgsConstructor
 public class IngestController implements IngestApi {
 
+  public static final MediaType METACARD_MEDIA_TYPE = MediaType.APPLICATION_XML;
   @NotNull private final IngestService ingestService;
 
   @Override
@@ -62,12 +63,10 @@ public class IngestController implements IngestApi {
     InputStream inputStream = null;
     try {
       // TODO return 404 if key doesn't exist
-      final MetacardRetrieveResponse retrieveResponse = ingestService.retrieveMetacard(id);
+      inputStream = ingestService.retrieveMetacard(id);
       log.info("Successfully retrieved metacard id={}", id);
-
-      inputStream = retrieveResponse.getInputStream();
       return ResponseEntity.ok()
-          .contentType(retrieveResponse.getMediaType())
+          .contentType(METACARD_MEDIA_TYPE)
           .body(new InputStreamResource(inputStream));
     } catch (RuntimeException e) {
       if (inputStream != null) {

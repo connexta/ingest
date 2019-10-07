@@ -6,9 +6,9 @@
  */
 package com.connexta.ingest.adaptors;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -19,12 +19,16 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.connexta.ingest.config.AmazonS3Configuration;
 import com.connexta.ingest.exceptions.StoreMetacardException;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.Duration;
+import org.apache.commons.io.IOUtils;
+import org.hamcrest.Description;
+import org.hamcrest.TypeSafeMatcher;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.MediaType;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 import org.testcontainers.junit.jupiter.Container;
@@ -52,6 +56,8 @@ public class S3MetacardAdaptorTests {
               new HttpWaitStrategy()
                   .forPath("/minio/health/ready")
                   .withStartupTimeout(Duration.ofSeconds(30)));
+
+  private String metacardContents;
 
   @BeforeAll
   public static void setUp() {
@@ -95,25 +101,39 @@ public class S3MetacardAdaptorTests {
 
   @Test
   public void testSuccessfulStoreRequest() {
-    storageAdaptor.store(
-        4L, MediaType.APPLICATION_PDF_VALUE, new ByteArrayInputStream("asdf".getBytes()), "1234");
+    storageAdaptor.store(4L, new ByteArrayInputStream("asdf".getBytes()), "1234");
   }
 
   @Test
   public void testSuccessfulRetrieveRequest() {
-    String key = "1234";
-    storageAdaptor.store(
-        4L, MediaType.APPLICATION_PDF_VALUE, new ByteArrayInputStream("asdf".getBytes()), key);
-    MetacardRetrieveResponse response = storageAdaptor.retrieve(key);
-    assertNotNull(response);
-    assertEquals(MediaType.APPLICATION_PDF, response.getMediaType());
+    final String key = "1234";
+    final String metacardContents = "asdf";
+    storageAdaptor.store(4L, new ByteArrayInputStream(metacardContents.getBytes()), key);
+    assertThat(
+        storageAdaptor.retrieve(key),
+        new TypeSafeMatcher<InputStream>() {
+          @Override
+          protected boolean matchesSafely(InputStream actual) {
+            try {
+              return IOUtils.contentEquals(
+                  new ByteArrayInputStream(metacardContents.getBytes()), actual);
+            } catch (final IOException e) {
+              fail("Unable to compare input streams", e);
+              return false;
+            }
+          }
+
+          @Override
+          public void describeTo(Description description) {
+            description.appendText("contents is " + metacardContents);
+          }
+        });
   }
 
   @Test
   public void testRetrieveRequestWrongKey() {
     String key = "1234";
-    storageAdaptor.store(
-        4L, MediaType.APPLICATION_PDF_VALUE, new ByteArrayInputStream("asdf".getBytes()), key);
+    storageAdaptor.store(4L, new ByteArrayInputStream("asdf".getBytes()), key);
     assertThrows(StoreMetacardException.class, () -> storageAdaptor.retrieve("wrong_key"));
   }
 
@@ -127,11 +147,7 @@ public class S3MetacardAdaptorTests {
     assertThrows(
         StoreMetacardException.class,
         () -> {
-          storageAdaptor.store(
-              10L,
-              MediaType.APPLICATION_PDF_VALUE,
-              new ByteArrayInputStream("asdf".getBytes()),
-              "1234");
+          storageAdaptor.store(10L, new ByteArrayInputStream("asdf".getBytes()), "1234");
         });
   }
 }

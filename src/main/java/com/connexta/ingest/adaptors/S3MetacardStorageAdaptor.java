@@ -6,6 +6,8 @@
  */
 package com.connexta.ingest.adaptors;
 
+import static com.connexta.ingest.controllers.IngestController.METACARD_MEDIA_TYPE;
+
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GetObjectRequest;
@@ -22,7 +24,6 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
 
 @Slf4j
 public class S3MetacardStorageAdaptor implements MetacardStorageAdaptor {
@@ -40,14 +41,13 @@ public class S3MetacardStorageAdaptor implements MetacardStorageAdaptor {
   @Override
   public void store(
       @NotNull @Min(1L) @Max(10737418240L) final Long fileSize,
-      @NotBlank final String mediaType,
       @NotNull final InputStream inputStream,
       @NotBlank final String key)
       throws StoreMetacardException {
     // TODO check if id already exists
 
     final ObjectMetadata objectMetadata = new ObjectMetadata();
-    objectMetadata.setContentType(mediaType);
+    objectMetadata.setContentType(METACARD_MEDIA_TYPE.toString());
     objectMetadata.setContentLength(fileSize);
 
     log.info("Storing metacard in bucket \"{}\" with key \"{}\"", bucket, key);
@@ -65,14 +65,10 @@ public class S3MetacardStorageAdaptor implements MetacardStorageAdaptor {
     log.info("Successfully stored metacard in bucket \"{}\" with key \"{}\"", bucket, key);
   }
 
-  /**
-   * The caller is responsible for closing the {@link InputStream} in the returned {@link
-   * MetacardRetrieveResponse}.
-   */
+  /** The caller is responsible for closing the returned {@link InputStream}. */
   @Override
   @NotNull
-  public MetacardRetrieveResponse retrieve(@NotBlank final String key)
-      throws StoreMetacardException {
+  public InputStream retrieve(@NotBlank final String key) throws StoreMetacardException {
     log.info("Retrieving product in bucket \"{}\" with key \"{}\"", bucket, key);
 
     S3Object s3Object;
@@ -86,8 +82,7 @@ public class S3MetacardStorageAdaptor implements MetacardStorageAdaptor {
 
       productInputStream = s3Object.getObjectContent();
 
-      return new MetacardRetrieveResponse(
-          MediaType.valueOf(s3Object.getObjectMetadata().getContentType()), productInputStream);
+      return productInputStream;
     } catch (Throwable t) {
       if (productInputStream != null) {
         try {

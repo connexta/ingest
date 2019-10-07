@@ -6,7 +6,6 @@
  */
 package com.connexta.ingest.service.impl;
 
-import com.connexta.ingest.adaptors.MetacardRetrieveResponse;
 import com.connexta.ingest.adaptors.MetacardStorageAdaptor;
 import com.connexta.ingest.client.StoreClient;
 import com.connexta.ingest.client.TransformClient;
@@ -30,8 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 public class IngestServiceImpl implements IngestService {
 
-  @VisibleForTesting static final String METACARD_MEDIA_TYPE = "application/xml";
-
   @VisibleForTesting
   static final String INVALID_RETRIEVE_URL_REASON = "Unable to construct retrieve URI";
 
@@ -52,7 +49,8 @@ public class IngestServiceImpl implements IngestService {
     final URI location = storeClient.store(fileSize, mimeType, inputStream, fileName);
 
     final String key = UUID.randomUUID().toString().replace("-", "");
-    metacardStorageAdaptor.store(metacardFileSize, METACARD_MEDIA_TYPE, metacardInputStream, key);
+    // TODO verify mimetype of metacard
+    metacardStorageAdaptor.store(metacardFileSize, metacardInputStream, key);
     final URI metacardLocation;
     try {
       metacardLocation = new URI(retrieveEndpoint + key);
@@ -64,9 +62,9 @@ public class IngestServiceImpl implements IngestService {
     log.info("Successfully submitted a transform request for {}", fileName);
   }
 
-  // TODO test this method too
+  // TODO test this method
   @Override
-  public MetacardRetrieveResponse retrieveMetacard(@NotBlank String id) {
+  public InputStream retrieveMetacard(@NotBlank String id) {
     return metacardStorageAdaptor.retrieve(id);
   }
 }

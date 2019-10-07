@@ -3,7 +3,7 @@ server:
 endpointUrl:
   store: http://localhost:9041/mis/product/
   transform: http://localhost:9090/transform/
-  retrieve: http://localhost:9040/ingest/
+  retrieve: http://localhost:${server.port}/
 endpoints:
   transform:
     version: testTransformApiVersion

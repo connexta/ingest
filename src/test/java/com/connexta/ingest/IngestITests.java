@@ -6,6 +6,8 @@
  */
 package com.connexta.ingest;
 
+import static com.connexta.ingest.controllers.IngestController.METACARD_MEDIA_TYPE;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.springframework.test.web.client.ExpectedCount.never;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath;
@@ -18,10 +20,16 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.connexta.ingest.config.AmazonS3Configuration;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.time.Duration;
 import javax.inject.Inject;
 import javax.inject.Named;
+import org.apache.commons.io.IOUtils;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
+import org.hamcrest.TypeSafeMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
@@ -37,17 +45,19 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.MultipartBodyBuilder;
+import org.springframework.mock.http.client.MockClientHttpRequest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.util.JsonPathExpectationsHelper;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.BodyInserters;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 import org.testcontainers.junit.jupiter.Container;
@@ -62,6 +72,19 @@ public class IngestITests {
   private static final byte[] TEST_FILE = "some-content".getBytes();
   private static final String TEST_FILE_CONTENT_TYPE = "text/plain";
   private static final byte[] TEST_METACARD = "metacard-content".getBytes();
+  private static final Resource METACARD =
+      new ByteArrayResource(TEST_METACARD) {
+
+        @Override
+        public long contentLength() {
+          return TEST_METACARD.length;
+        }
+
+        @Override
+        public String getFilename() {
+          return "metacard.xml";
+        }
+      };
   private static final String MINIO_ADMIN_ACCESS_KEY = "admin";
   private static final String MINIO_ADMIN_SECRET_KEY = "12345678";
   private static final int MINIO_PORT = 9000;
@@ -78,16 +101,36 @@ public class IngestITests {
                   .forPath("/minio/health/ready")
                   .withStartupTimeout(Duration.ofSeconds(30)));
 
-  @LocalServerPort int port;
+  private static final MultiValueMap<String, HttpEntity<?>> TEST_INGEST_REQUEST_BODY;
+
+  static {
+    final MultipartBodyBuilder builder = new MultipartBodyBuilder();
+    builder.part(
+        "file",
+        new ByteArrayResource(TEST_FILE) {
+
+          @Override
+          public long contentLength() {
+            return TEST_FILE.length;
+          }
+
+          @Override
+          public String getFilename() {
+            return "originalFilename.txt";
+          }
+        });
+    builder.part("metacard", METACARD);
+    builder.part("correlationId", "000f4e4a");
+    TEST_INGEST_REQUEST_BODY = builder.build();
+  }
+
+  @LocalServerPort private int port;
 
   @Value("${endpointUrl.store}")
   private String endpointUrlStore;
 
   @Value("${endpointUrl.transform}")
   private String endpointUrlTransform;
-
-  @Value("${endpointUrl.retrieve}")
-  private String endpointUrlRetrieve;
 
   @Value("${endpoints.transform.version}")
   private String endpointsTransformVersion;
@@ -166,7 +209,25 @@ public class IngestITests {
         .andExpect(header("Accept-Version", endpointsTransformVersion))
         .andExpect(jsonPath("$.location").value(location.toString())) // TODO assert URI, not String
         .andExpect(jsonPath("$.mimeType").value(TEST_FILE_CONTENT_TYPE))
-        .andExpect(jsonPath("$.metacardLocation").isNotEmpty()) // TODO verify retrieve URL works
+        .andExpect(
+            request -> {
+              final String metacardLocation =
+                  (String)
+                      (new JsonPathExpectationsHelper("$.metacardLocation"))
+                          .evaluateJsonPath(
+                              ((MockClientHttpRequest) request).getBodyAsString(), String.class);
+              webTestClient
+                  .get()
+                  .uri(metacardLocation)
+                  .exchange()
+                  .expectStatus()
+                  .isOk()
+                  .expectHeader()
+                  .contentType(METACARD_MEDIA_TYPE)
+                  .expectBody(Resource.class)
+                  .value(isReadable())
+                  .value(hasContents(METACARD.getInputStream()));
+            })
         .andRespond(
             withStatus(HttpStatus.ACCEPTED)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -176,84 +237,28 @@ public class IngestITests {
                         .put("message", "The ID asdf has been accepted")
                         .toString()));
 
-    final MultipartBodyBuilder builder = new MultipartBodyBuilder();
-    builder.part(
-        "file",
-        new ByteArrayResource(TEST_FILE) {
-
-          @Override
-          public long contentLength() {
-            return TEST_FILE.length;
-          }
-
-          @Override
-          public String getFilename() {
-            return "originalFilename.txt";
-          }
-        });
-    builder.part(
-        "metacard",
-        new ByteArrayResource(TEST_METACARD) {
-          @Override
-          public long contentLength() {
-            return TEST_METACARD.length;
-          }
-
-          @Override
-          public String getFilename() {
-            return "idk why this is needed";
-          }
-        });
-    builder.part("correlationId", "000f4e4a");
-    final MultiValueMap<String, HttpEntity<?>> multipartBody = builder.build();
-    // TODO inject this like we do for the transformApiVersion in TransformClient
-
+    // when
     webTestClient
         .post()
         .uri("/ingest")
         .contentType(MediaType.MULTIPART_FORM_DATA)
-        .syncBody(multipartBody)
-        .header("Accept-Version", "0.5.0")
+        .syncBody(TEST_INGEST_REQUEST_BODY)
+        .header(
+            "Accept-Version",
+            "0.5.0") // TODO inject this like we do for the transformApiVersion in TransformClient
         .exchange()
         .expectStatus()
         .isAccepted();
   }
 
-  @Test
-  public void testIngestRequestWithMissingMetacard() throws Exception {
-
-    final MultipartBodyBuilder builder = new MultipartBodyBuilder();
-    builder.part(
-        "file",
-        new ByteArrayResource(TEST_FILE) {
-
-          @Override
-          public long contentLength() {
-            return TEST_FILE.length;
-          }
-
-          @Override
-          public String getFilename() {
-            return "originalFilename.txt";
-          }
-        });
-    builder.part("correlationId", "000f4e4a");
-    final MultiValueMap<String, HttpEntity<?>> multipartBody = builder.build();
-
-    webTestClient
-        .post()
-        .uri("/ingest")
-        .header("Accept-Version", "1.1.1")
-        .body(BodyInserters.fromMultipartData(multipartBody))
-        .exchange()
-        .expectStatus()
-        .isBadRequest();
-  }
-
   /* END ingest request tests */
 
-  /* START store request tests */
+  /* START store file request tests */
 
+  /**
+   * The error handler throws the same exception for all non-202 status codes returned by the store
+   * file endpoint.
+   */
   @ParameterizedTest
   @EnumSource(
       value = HttpStatus.class,
@@ -264,7 +269,7 @@ public class IngestITests {
         "NOT_IMPLEMENTED",
         "INTERNAL_SERVER_ERROR"
       })
-  public void testStoreRequests(HttpStatus status) throws Exception {
+  public void testUnsuccessfulStoreFileRequests(HttpStatus status) {
     storeMockRestServiceServer
         .expect(requestTo(endpointUrlStore))
         .andExpect(method(HttpMethod.POST))
@@ -278,18 +283,22 @@ public class IngestITests {
         .header("Accept-Version", "1.1.1")
         .contentType(MediaType.MULTIPART_FORM_DATA)
         .accept(MediaType.APPLICATION_JSON)
-        .syncBody(createTestMultipartFile())
+        .syncBody(TEST_INGEST_REQUEST_BODY)
         .exchange()
         .expectStatus()
         .is5xxServerError();
   }
 
-  /* END store request tests */
+  /* END store file request tests */
+
+  // TODO testUnsuccessfulStoreMetacardRequest
 
   /* START transform request tests */
 
-  // The error handler throws the same exception for all non-202 status codes returned by the
-  // transformation endpoint.
+  /**
+   * The error handler throws the same exception for all non-202 status codes returned by the
+   * transformation endpoint.
+   */
   @Test
   public void testUnsuccessfulTransformRequest() throws Exception {
     final URI location = new URI("http://localhost:1232/store/1234");
@@ -313,7 +322,7 @@ public class IngestITests {
         .header("Accept-Version", "1.1.1")
         .contentType(MediaType.MULTIPART_FORM_DATA)
         .accept(MediaType.APPLICATION_JSON)
-        .syncBody(createTestMultipartFile())
+        .syncBody(TEST_INGEST_REQUEST_BODY)
         .exchange()
         .expectStatus()
         .is5xxServerError();
@@ -322,37 +331,38 @@ public class IngestITests {
   /* END transform request tests */
 
   @NotNull
-  private static MultiValueMap<String, HttpEntity<?>> createTestMultipartFile() {
-    final MultipartBodyBuilder builder = new MultipartBodyBuilder();
-    builder.part(
-        "file",
-        new ByteArrayResource(TEST_FILE) {
+  private static Matcher<Resource> hasContents(final InputStream expected) {
+    return new TypeSafeMatcher<>() {
 
-          @Override
-          public long contentLength() {
-            return TEST_FILE.length;
-          }
+      @Override
+      protected boolean matchesSafely(Resource resource) {
+        try {
+          return IOUtils.contentEquals(resource.getInputStream(), expected);
+        } catch (IOException e) {
+          fail("Unable to compare input streams", e);
+          return false;
+        }
+      }
 
-          @Override
-          public String getFilename() {
-            return "originalFilename.txt";
-          }
-        });
-    builder.part(
-        "metacard",
-        new ByteArrayResource(TEST_METACARD) {
+      @Override
+      public void describeTo(Description description) {
+        description.appendText("has the expected contents");
+      }
+    };
+  }
 
-          @Override
-          public long contentLength() {
-            return TEST_FILE.length;
-          }
+  @NotNull
+  private static Matcher<Resource> isReadable() {
+    return new TypeSafeMatcher<>() {
+      @Override
+      protected boolean matchesSafely(Resource resource) {
+        return resource.isReadable();
+      }
 
-          @Override
-          public String getFilename() {
-            return "metacard.xml";
-          }
-        });
-    builder.part("correlationId", "000f4e4a");
-    return builder.build();
+      @Override
+      public void describeTo(Description description) {
+        description.appendText("is readable");
+      }
+    };
   }
 }

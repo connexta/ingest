@@ -6,17 +6,26 @@
  */
 package com.connexta.ingest.controllers;
 
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.connexta.ingest.exceptions.StoreException;
 import com.connexta.ingest.exceptions.StoreMetacardException;
 import com.connexta.ingest.exceptions.TransformException;
-import com.connexta.ingest.service.impl.IngestServiceImpl;
+import com.connexta.ingest.service.api.IngestService;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.stream.Stream;
 import javax.inject.Inject;
+import javax.validation.constraints.NotNull;
+import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -32,12 +41,13 @@ public class IngestControllerTests {
 
   private static final String ACCEPT_VERSION = "0.1.0";
   private static final String CORRELATION_ID = "90210";
-  private static final MockMultipartFile file =
-      new MockMultipartFile("file", "file_content".getBytes());
-  private static final MockMultipartFile metacard =
-      new MockMultipartFile("metacard", "content".getBytes());
+  private static final MockMultipartFile FILE =
+      new MockMultipartFile(
+          "file", "originalFilename.txt", "text/plain", "file_content".getBytes());
+  private static final MockMultipartFile METACARD =
+      new MockMultipartFile("metacard", "ignored.xml", "application/xml", "content".getBytes());
 
-  @MockBean private IngestServiceImpl ingestService;
+  @MockBean private IngestService mockIngestService;
   @Inject private MockMvc mockMvc;
 
   @Test
@@ -45,11 +55,20 @@ public class IngestControllerTests {
     mockMvc
         .perform(
             multipart("/ingest")
-                .file(file)
-                .file(metacard)
+                .file(FILE)
+                .file(METACARD)
                 .param("correlationId", CORRELATION_ID)
                 .header("Accept-Version", ACCEPT_VERSION))
         .andExpect(status().isAccepted());
+
+    verify(mockIngestService)
+        .ingest(
+            eq(FILE.getSize()),
+            eq(FILE.getContentType()),
+            inputStreamContentEq(FILE.getInputStream()),
+            eq(FILE.getOriginalFilename()),
+            eq(METACARD.getSize()),
+            inputStreamContentEq(METACARD.getInputStream()));
   }
 
   @Test
@@ -57,10 +76,12 @@ public class IngestControllerTests {
     mockMvc
         .perform(
             multipart("/ingest")
-                .file(metacard)
+                .file(METACARD)
                 .param("correlationId", CORRELATION_ID)
                 .header("Accept-Version", ACCEPT_VERSION))
         .andExpect(status().isBadRequest());
+
+    verifyNoInteractions(mockIngestService);
   }
 
   @Test
@@ -68,48 +89,71 @@ public class IngestControllerTests {
     mockMvc
         .perform(
             multipart("/ingest")
-                .file(file)
+                .file(FILE)
                 .param("correlationId", CORRELATION_ID)
                 .header("Accept-Version", ACCEPT_VERSION))
         .andExpect(status().isBadRequest());
+
+    verifyNoInteractions(mockIngestService);
   }
 
   @Test
   public void testMissingCorrelationID() throws Exception {
     mockMvc
         .perform(
-            multipart("/ingest").file(file).file(metacard).header("Accept-Version", ACCEPT_VERSION))
+            multipart("/ingest").file(FILE).file(METACARD).header("Accept-Version", ACCEPT_VERSION))
         .andExpect(status().isBadRequest());
+
+    verifyNoInteractions(mockIngestService);
   }
 
   @Test
   public void testMissingAcceptVersionHeader() throws Exception {
     mockMvc
-        .perform(multipart("/ingest").file(file).file(metacard))
+        .perform(multipart("/ingest").file(FILE).file(METACARD))
         .andExpect(status().isBadRequest());
+
+    verifyNoInteractions(mockIngestService);
   }
 
-  @ParameterizedTest(name = "{0} is thrown when IngestService#ingest throws {1}")
-  @MethodSource("requestsThatThrowErrors")
-  public void testIngestServiceExceptions(HttpStatus responseStatus, Throwable throwableType)
-      throws Exception {
-    doThrow(throwableType).when(ingestService).ingest(any(), any(), any(), any(), any(), any());
+  /**
+   * TODO Test RuntimeException and Throwable thrown by {@link IngestService#ingest(Long, String,
+   * InputStream, String, Long, InputStream)}
+   */
+  @ParameterizedTest(name = "{0} is the response status code when IngestService#ingest throws {1}")
+  @MethodSource("exceptionThrownByIngestServiceAndExpectedResponseStatus")
+  public void testIngestServiceExceptions(
+      final Throwable throwable, final HttpStatus expectedResponseStatus) throws Exception {
+    doThrow(throwable).when(mockIngestService).ingest(any(), any(), any(), any(), any(), any());
 
     mockMvc
         .perform(
             multipart("/ingest")
-                .file(file)
-                .file(metacard)
+                .file(FILE)
+                .file(METACARD)
                 .param("correlationId", CORRELATION_ID)
                 .header("Accept-Version", ACCEPT_VERSION))
-        .andExpect(status().is(responseStatus.value()));
+        .andExpect(status().is(expectedResponseStatus.value()));
   }
 
-  private static Stream<Arguments> requestsThatThrowErrors() {
+  private static Stream<Arguments> exceptionThrownByIngestServiceAndExpectedResponseStatus() {
     return Stream.of(
-        Arguments.of(HttpStatus.INTERNAL_SERVER_ERROR, new StoreException(new Throwable())),
-        Arguments.of(HttpStatus.INTERNAL_SERVER_ERROR, new TransformException(new Throwable())),
+        Arguments.of(new StoreException(new Throwable()), HttpStatus.INTERNAL_SERVER_ERROR),
+        Arguments.of(new TransformException(new Throwable()), HttpStatus.INTERNAL_SERVER_ERROR),
         Arguments.of(
-            HttpStatus.INTERNAL_SERVER_ERROR, new StoreMetacardException("Test", new Throwable())));
+            new StoreMetacardException("Test", new Throwable()), HttpStatus.INTERNAL_SERVER_ERROR));
+  }
+
+  @NotNull
+  private static InputStream inputStreamContentEq(@NotNull final InputStream expected) {
+    return argThat(
+        actual -> {
+          try {
+            return IOUtils.contentEquals(expected, actual);
+          } catch (final IOException e) {
+            fail("Unable to compare input streams", e);
+            return false;
+          }
+        });
   }
 }

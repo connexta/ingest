@@ -6,7 +6,6 @@
  */
 package com.connexta.ingest.service.api;
 
-import com.connexta.ingest.adaptors.MetacardRetrieveResponse;
 import com.connexta.ingest.exceptions.StoreException;
 import com.connexta.ingest.exceptions.StoreMetacardException;
 import com.connexta.ingest.exceptions.TransformException;
@@ -28,5 +27,5 @@ public interface IngestService {
       @NotNull final InputStream metacardInputStream)
       throws StoreException, TransformException, StoreMetacardException;
 
-  MetacardRetrieveResponse retrieveMetacard(@NotBlank final String id);
+  InputStream retrieveMetacard(@NotBlank final String id);
 }

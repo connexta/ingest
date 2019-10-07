@@ -24,7 +24,6 @@ public interface MetacardStorageAdaptor {
    */
   void store(
       @NotNull @Min(1L) @Max(10737418240L) final Long fileSize,
-      @NotBlank final String mediaType,
       @NotNull final InputStream inputStream,
       @NotBlank final String key)
       throws StoreMetacardException;
@@ -36,5 +35,5 @@ public interface MetacardStorageAdaptor {
    * @throws StoreMetacardException
    */
   @NotNull
-  MetacardRetrieveResponse retrieve(@NotBlank final String key) throws StoreMetacardException;
+  InputStream retrieve(@NotBlank final String key) throws StoreMetacardException;
 }
