@@ -192,8 +192,6 @@ public class IngestITests {
   @Test
   public void testContextLoads() {}
 
-  /* START ingest request tests */
-
   @Test
   public void testSuccessfulIngestRequest() throws Exception {
     // given
@@ -250,8 +248,6 @@ public class IngestITests {
         .expectStatus()
         .isAccepted();
   }
-
-  /* END ingest request tests */
 
   /* START store file request tests */
 

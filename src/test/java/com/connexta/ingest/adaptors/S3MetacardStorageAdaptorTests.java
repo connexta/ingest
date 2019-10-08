@@ -24,7 +24,9 @@ import java.io.InputStream;
 import java.time.Duration;
 import org.apache.commons.io.IOUtils;
 import org.hamcrest.Description;
+import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,7 +37,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
-public class S3MetacardAdaptorTests {
+public class S3MetacardStorageAdaptorTests {
 
   private static final String MINIO_ADMIN_ACCESS_KEY = "admin";
   private static final String MINIO_ADMIN_SECRET_KEY = "12345678";
@@ -109,25 +111,7 @@ public class S3MetacardAdaptorTests {
     final String key = "1234";
     final String metacardContents = "asdf";
     storageAdaptor.store(4L, new ByteArrayInputStream(metacardContents.getBytes()), key);
-    assertThat(
-        storageAdaptor.retrieve(key),
-        new TypeSafeMatcher<InputStream>() {
-          @Override
-          protected boolean matchesSafely(InputStream actual) {
-            try {
-              return IOUtils.contentEquals(
-                  new ByteArrayInputStream(metacardContents.getBytes()), actual);
-            } catch (final IOException e) {
-              fail("Unable to compare input streams", e);
-              return false;
-            }
-          }
-
-          @Override
-          public void describeTo(Description description) {
-            description.appendText("contents is " + metacardContents);
-          }
-        });
+    assertThat(storageAdaptor.retrieve(key), hasContents(metacardContents));
   }
 
   @Test
@@ -149,5 +133,26 @@ public class S3MetacardAdaptorTests {
         () -> {
           storageAdaptor.store(10L, new ByteArrayInputStream("asdf".getBytes()), "1234");
         });
+  }
+
+  @NotNull
+  private static Matcher<InputStream> hasContents(final String expectedContents) {
+    return new TypeSafeMatcher<InputStream>() {
+      @Override
+      protected boolean matchesSafely(InputStream actual) {
+        try {
+          return IOUtils.contentEquals(
+              new ByteArrayInputStream(expectedContents.getBytes()), actual);
+        } catch (final IOException e) {
+          fail("Unable to compare input streams", e);
+          return false;
+        }
+      }
+
+      @Override
+      public void describeTo(Description description) {
+        description.appendText("contents is " + expectedContents);
+      }
+    };
   }
 }
