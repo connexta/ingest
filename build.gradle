@@ -39,7 +39,7 @@ repositories {
 dependencies {
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
-    implementation "com.amazonaws:aws-java-sdk-s3:1.11.646"
+    implementation "com.amazonaws:aws-java-sdk-s3:1.11.648"
     implementation "com.connexta.ingest:ingest-api-rest-spring-stubs:0.5.0"
     implementation "com.connexta.transformation:transformation-api-rest-spring-stubs:${transformApiVersion}"
     implementation "commons-io:commons-io:2.6"
