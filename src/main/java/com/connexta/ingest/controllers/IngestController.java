@@ -20,13 +20,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 @Slf4j
 @RestController
@@ -39,11 +40,13 @@ public class IngestController implements IngestApi {
   @Override
   public ResponseEntity<Void> ingest(
       String acceptVersion,
-      @RequestHeader(name = "Last-Modified") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-          OffsetDateTime lastModified,
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime lastModified,
       MultipartFile file,
       String correlationId,
       MultipartFile metacard) {
+    if (lastModified == null || lastModified.toString().isBlank()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+    }
     String fileName = file.getOriginalFilename();
     log.info("Ingest request received fileName={}", fileName);
     InputStream inputStream;

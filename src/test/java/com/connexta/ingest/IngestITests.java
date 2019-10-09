@@ -8,6 +8,7 @@ package com.connexta.ingest;
 
 import static com.connexta.ingest.controllers.IngestController.METACARD_MEDIA_TYPE;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.springframework.http.HttpHeaders.LAST_MODIFIED;
 import static org.springframework.test.web.client.ExpectedCount.never;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath;
@@ -87,6 +88,7 @@ public class IngestITests {
       };
   private static final String MINIO_ADMIN_ACCESS_KEY = "admin";
   private static final String MINIO_ADMIN_SECRET_KEY = "12345678";
+  private static final String LAST_MODIFIED_DATE = "2017-06-11T14:32:28Z";
   private static final int MINIO_PORT = 9000;
 
   @Container
@@ -244,7 +246,7 @@ public class IngestITests {
         .header(
             "Accept-Version",
             "0.5.0") // TODO inject this like we do for the transformApiVersion in TransformClient
-        .header("Last-Modified", "2017-06-11T14:32:28Z")
+        .header(LAST_MODIFIED, LAST_MODIFIED_DATE)
         .exchange()
         .expectStatus()
         .isAccepted();
@@ -278,7 +280,7 @@ public class IngestITests {
         .post()
         .uri("/ingest")
         .header("Accept-Version", "1.1.1")
-        .header("Last-Modified", "2007-07-04T09:09:09.120+00:00")
+        .header(LAST_MODIFIED, LAST_MODIFIED_DATE)
         .contentType(MediaType.MULTIPART_FORM_DATA)
         .accept(MediaType.APPLICATION_JSON)
         .syncBody(TEST_INGEST_REQUEST_BODY)
@@ -318,7 +320,7 @@ public class IngestITests {
         .post()
         .uri("/ingest")
         .header("Accept-Version", "1.1.1")
-        .header("Last-Modified", "1985-10-25T17:32:28.101+00:00")
+        .header(LAST_MODIFIED, LAST_MODIFIED_DATE)
         .contentType(MediaType.MULTIPART_FORM_DATA)
         .accept(MediaType.APPLICATION_JSON)
         .syncBody(TEST_INGEST_REQUEST_BODY)
