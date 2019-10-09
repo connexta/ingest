@@ -29,7 +29,8 @@ public class StoreClient {
   @NotNull private final RestTemplate restTemplate;
   @NotBlank private final String storeEndpoint;
 
-  /** @return the location of the product */
+  /** @return the non-null location of the product */
+  @NotNull
   public URI store(
       @NotNull @Min(1L) @Max(10737418240L) final Long fileSize,
       @NotBlank final String mimeType,
@@ -53,7 +54,8 @@ public class StoreClient {
         });
 
     final HttpHeaders headers = new HttpHeaders();
-    headers.set("Accept-Version", "0.1.0");
+    // TODO inject this like we do for the transformApiVersion in TransformClient
+    headers.set("Accept-Version", "0.2.0");
 
     final HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
     log.info("Sending POST request to {}: {}", storeEndpoint, request);

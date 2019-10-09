@@ -9,8 +9,6 @@ package com.connexta.ingest.client;
 import com.connexta.ingest.exceptions.TransformException;
 import com.connexta.transformation.rest.models.TransformRequest;
 import java.net.URI;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -30,17 +28,17 @@ public class TransformClient {
   public void requestTransform(
       @NotNull final URI location,
       @NotBlank final String mimeType,
-      @NotNull @Min(1L) @Max(10737418240L) final Long fileSize)
+      @NotNull final URI metacardLocation)
       throws TransformException {
     final HttpHeaders headers = new HttpHeaders();
     headers.set("Accept-Version", transformApiVersion);
-
-    final TransformRequest transformRequest =
-        new TransformRequest().location(location.toString()).mimeType(mimeType).bytes(fileSize);
-
     final HttpEntity<TransformRequest> transformRequestHttpEntity =
-        new HttpEntity<>(transformRequest, headers);
-    log.info("HttpEntity<TransformRequest>: {}", transformRequestHttpEntity.toString());
+        new HttpEntity<>(
+            new TransformRequest()
+                .location(location.toString())
+                .mimeType(mimeType)
+                .metacardLocation(metacardLocation.toString()),
+            headers);
 
     try {
       restTemplate.postForEntity(transformEndpoint, transformRequestHttpEntity, Void.class);

@@ -19,8 +19,8 @@ import org.springframework.web.client.RestTemplate;
 @Configuration
 public class StoreClientConfiguration {
 
-  @Bean("nonBufferingRestTemplate")
-  public RestTemplate nonBufferingRestTemplate() {
+  @Bean("storeClientRestTemplate")
+  public RestTemplate storeClientRestTemplate() {
     SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
     requestFactory.setBufferRequestBody(false);
     return new RestTemplate(requestFactory);
@@ -28,7 +28,7 @@ public class StoreClientConfiguration {
 
   @Bean
   public StoreClient storeClient(
-      @NotNull @Named("nonBufferingRestTemplate") RestTemplate restTemplate,
+      @NotNull @Named("storeClientRestTemplate") RestTemplate restTemplate,
       @NotBlank @Value("${endpointUrl.store}") String storeEndpoint) {
     return new StoreClient(restTemplate, storeEndpoint);
   }
