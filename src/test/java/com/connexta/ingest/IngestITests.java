@@ -244,6 +244,7 @@ public class IngestITests {
         .header(
             "Accept-Version",
             "0.5.0") // TODO inject this like we do for the transformApiVersion in TransformClient
+        .header("Last-Modified", "2017-06-11T14:32:28Z")
         .exchange()
         .expectStatus()
         .isAccepted();
@@ -277,6 +278,7 @@ public class IngestITests {
         .post()
         .uri("/ingest")
         .header("Accept-Version", "1.1.1")
+        .header("Last-Modified", "2007-07-04T09:09:09.120+00:00")
         .contentType(MediaType.MULTIPART_FORM_DATA)
         .accept(MediaType.APPLICATION_JSON)
         .syncBody(TEST_INGEST_REQUEST_BODY)
@@ -316,6 +318,7 @@ public class IngestITests {
         .post()
         .uri("/ingest")
         .header("Accept-Version", "1.1.1")
+        .header("Last-Modified", "1985-10-25T17:32:28.101+00:00")
         .contentType(MediaType.MULTIPART_FORM_DATA)
         .accept(MediaType.APPLICATION_JSON)
         .syncBody(TEST_INGEST_REQUEST_BODY)

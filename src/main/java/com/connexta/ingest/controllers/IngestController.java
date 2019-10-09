@@ -12,16 +12,19 @@ import com.connexta.ingest.service.api.IngestService;
 import io.swagger.annotations.ApiParam;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.OffsetDateTime;
 import javax.validation.ValidationException;
 import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -35,7 +38,12 @@ public class IngestController implements IngestApi {
 
   @Override
   public ResponseEntity<Void> ingest(
-      String acceptVersion, MultipartFile file, String correlationId, MultipartFile metacard) {
+      String acceptVersion,
+      @RequestHeader(name = "Last-Modified") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+          OffsetDateTime lastModified,
+      MultipartFile file,
+      String correlationId,
+      MultipartFile metacard) {
     String fileName = file.getOriginalFilename();
     log.info("Ingest request received fileName={}", fileName);
     InputStream inputStream;

@@ -41,6 +41,7 @@ public class IngestControllerTests {
 
   private static final String ACCEPT_VERSION = "0.1.0";
   private static final String CORRELATION_ID = "90210";
+  private static final String LAST_MODIFIED = "1984-04-20T08:08:08Z";
   private static final MockMultipartFile FILE =
       new MockMultipartFile(
           "file", "originalFilename.txt", "text/plain", "file_content".getBytes());
@@ -58,6 +59,7 @@ public class IngestControllerTests {
                 .file(FILE)
                 .file(METACARD)
                 .param("correlationId", CORRELATION_ID)
+                .header("Last-Modified", LAST_MODIFIED)
                 .header("Accept-Version", ACCEPT_VERSION))
         .andExpect(status().isAccepted());
 
@@ -78,6 +80,7 @@ public class IngestControllerTests {
             multipart("/ingest")
                 .file(METACARD)
                 .param("correlationId", CORRELATION_ID)
+                .header("Last-Modified", LAST_MODIFIED)
                 .header("Accept-Version", ACCEPT_VERSION))
         .andExpect(status().isBadRequest());
 
@@ -91,6 +94,7 @@ public class IngestControllerTests {
             multipart("/ingest")
                 .file(FILE)
                 .param("correlationId", CORRELATION_ID)
+                .header("Last-Modified", LAST_MODIFIED)
                 .header("Accept-Version", ACCEPT_VERSION))
         .andExpect(status().isBadRequest());
 
@@ -101,7 +105,11 @@ public class IngestControllerTests {
   public void testMissingCorrelationID() throws Exception {
     mockMvc
         .perform(
-            multipart("/ingest").file(FILE).file(METACARD).header("Accept-Version", ACCEPT_VERSION))
+            multipart("/ingest")
+                .file(FILE)
+                .file(METACARD)
+                .header("Last-Modified", LAST_MODIFIED)
+                .header("Accept-Version", ACCEPT_VERSION))
         .andExpect(status().isBadRequest());
 
     verifyNoInteractions(mockIngestService);
@@ -110,7 +118,18 @@ public class IngestControllerTests {
   @Test
   public void testMissingAcceptVersionHeader() throws Exception {
     mockMvc
-        .perform(multipart("/ingest").file(FILE).file(METACARD))
+        .perform(
+            multipart("/ingest").file(FILE).file(METACARD).header("Last-Modified", LAST_MODIFIED))
+        .andExpect(status().isBadRequest());
+
+    verifyNoInteractions(mockIngestService);
+  }
+
+  @Test
+  public void testMissingLastModifiedHeader() throws Exception {
+    mockMvc
+        .perform(
+            multipart("/ingest").file(FILE).file(METACARD).header("Accept-Version", ACCEPT_VERSION))
         .andExpect(status().isBadRequest());
 
     verifyNoInteractions(mockIngestService);
@@ -132,6 +151,7 @@ public class IngestControllerTests {
                 .file(FILE)
                 .file(METACARD)
                 .param("correlationId", CORRELATION_ID)
+                .header("Last-Modified", LAST_MODIFIED)
                 .header("Accept-Version", ACCEPT_VERSION))
         .andExpect(status().is(expectedResponseStatus.value()));
   }
