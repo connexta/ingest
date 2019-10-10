@@ -6,6 +6,8 @@
  */
 package com.connexta.ingest.controllers;
 
+import static org.springframework.http.HttpHeaders.LAST_MODIFIED;
+
 import com.connexta.ingest.exceptions.StoreMetacardException;
 import com.connexta.ingest.rest.spring.IngestApi;
 import com.connexta.ingest.service.api.IngestService;
@@ -44,7 +46,7 @@ public class IngestController implements IngestApi {
       String correlationId,
       MultipartFile metacard) {
     if (lastModified == null || lastModified.toString().isBlank()) {
-      throw new ServerWebInputException("LAST-MODIFIED is missing or blank");
+      throw new ServerWebInputException(LAST_MODIFIED + "is missing or blank");
     }
     String fileName = file.getOriginalFilename();
     log.info("Ingest request received fileName={}", fileName);
