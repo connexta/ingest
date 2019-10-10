@@ -6,24 +6,29 @@
  */
 package com.connexta.ingest.controllers;
 
+import static org.springframework.http.HttpHeaders.LAST_MODIFIED;
+
 import com.connexta.ingest.exceptions.StoreMetacardException;
 import com.connexta.ingest.rest.spring.IngestApi;
 import com.connexta.ingest.service.api.IngestService;
 import io.swagger.annotations.ApiParam;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.OffsetDateTime;
 import javax.validation.ValidationException;
 import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ServerWebInputException;
 
 @Slf4j
 @RestController
@@ -35,7 +40,14 @@ public class IngestController implements IngestApi {
 
   @Override
   public ResponseEntity<Void> ingest(
-      String acceptVersion, MultipartFile file, String correlationId, MultipartFile metacard) {
+      String acceptVersion,
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime lastModified,
+      MultipartFile file,
+      String correlationId,
+      MultipartFile metacard) {
+    if (lastModified == null || lastModified.toString().isBlank()) {
+      throw new ServerWebInputException(LAST_MODIFIED + "is missing or blank");
+    }
     String fileName = file.getOriginalFilename();
     log.info("Ingest request received fileName={}", fileName);
     InputStream inputStream;
