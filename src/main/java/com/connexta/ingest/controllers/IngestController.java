@@ -44,7 +44,7 @@ public class IngestController implements IngestApi {
       String correlationId,
       MultipartFile metacard) {
     if (lastModified == null || lastModified.toString().isBlank()) {
-      throw new ServerWebInputException("Last-Modified is missing or blank");
+      throw new ServerWebInputException("LAST-MODIFIED is missing or blank");
     }
     String fileName = file.getOriginalFilename();
     log.info("Ingest request received fileName={}", fileName);
