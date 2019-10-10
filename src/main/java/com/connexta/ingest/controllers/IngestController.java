@@ -20,14 +20,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.server.ServerWebInputException;
 
 @Slf4j
 @RestController
@@ -45,7 +44,7 @@ public class IngestController implements IngestApi {
       String correlationId,
       MultipartFile metacard) {
     if (lastModified == null || lastModified.toString().isBlank()) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+      throw new ServerWebInputException("Last-Modified is missing or blank");
     }
     String fileName = file.getOriginalFilename();
     log.info("Ingest request received fileName={}", fileName);
