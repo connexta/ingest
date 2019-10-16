@@ -1,7 +1,7 @@
 version: '3.7'
 services:
   ingest:
-    image: ${REGISTRY:-docker.io}/cnxta/ion-ingest
+    image: ${DOCKER_REGISTRY:-docker.io}/cnxta/ion-ingest
     ports:
       - target: 8080
         published: 9040
