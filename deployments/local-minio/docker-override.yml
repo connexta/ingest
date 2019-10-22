@@ -2,6 +2,7 @@ version: '3.7'
 
 services:
   ingest:
+    image: cnxta/ion-ingest
     depends_on:
       - minio
   minio:
