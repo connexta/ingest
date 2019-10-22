@@ -13,7 +13,6 @@ import com.connexta.ingest.exceptions.StoreException;
 import com.connexta.ingest.exceptions.StoreMetacardException;
 import com.connexta.ingest.exceptions.TransformException;
 import com.connexta.ingest.service.api.IngestService;
-import com.google.common.annotations.VisibleForTesting;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -28,9 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @AllArgsConstructor
 public class IngestServiceImpl implements IngestService {
-
-  @VisibleForTesting
-  static final String INVALID_RETRIEVE_URL_REASON = "Unable to construct retrieve URI";
 
   @NotNull private final StoreClient storeClient;
   @NotNull private final MetacardStorageAdaptor metacardStorageAdaptor;
@@ -55,7 +51,7 @@ public class IngestServiceImpl implements IngestService {
     try {
       metacardLocation = new URI(retrieveEndpoint + key);
     } catch (URISyntaxException e) {
-      throw new StoreMetacardException(INVALID_RETRIEVE_URL_REASON, e);
+      throw new StoreMetacardException("Unable to construct retrieve URI", e);
     }
 
     transformClient.requestTransform(location, mimeType, metacardLocation);

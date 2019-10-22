@@ -46,7 +46,8 @@ public class IngestController implements IngestApi {
       String correlationId,
       MultipartFile metacard) {
     if (lastModified == null || lastModified.toString().isBlank()) {
-      throw new ServerWebInputException(LAST_MODIFIED + "is missing or blank");
+      throw new ServerWebInputException(
+          String.format("%s is missing or blank", LAST_MODIFIED)); // TODO Replace this exception
     }
     String fileName = file.getOriginalFilename();
     log.info("Ingest request received fileName={}", fileName);
@@ -56,7 +57,7 @@ public class IngestController implements IngestApi {
       inputStream = file.getInputStream();
       metacardInputStream = metacard.getInputStream();
     } catch (IOException e) {
-      throw new ValidationException("Could not open attachment");
+      throw new ValidationException("Could not open attachment"); // TODO Replace this exception
     }
     ingestService.ingest(
         file.getSize(),
@@ -85,18 +86,19 @@ public class IngestController implements IngestApi {
         try {
           inputStream.close();
         } catch (IOException ioe) {
-          log.warn("Unable to close InputStream when retrieving metacard id={}.", id, ioe);
+          log.warn("Unable to close InputStream when retrieving metacard id={}", id, ioe);
         }
       }
 
       log.warn("Unable to retrieve metacard id={}", id, e);
-      throw new StoreMetacardException("Unable to retrieve metacard", e);
+      throw new StoreMetacardException(
+          String.format("Unable to retrieve metacard: %s", e.getMessage()), e);
     } catch (Throwable t) {
       if (inputStream != null) {
         try {
           inputStream.close();
         } catch (IOException e) {
-          log.warn("Unable to close InputStream when retrieving metacard id={}.", id, e);
+          log.warn("Unable to close InputStream when retrieving metacard id={}", id, e);
         }
       }
       throw t;
