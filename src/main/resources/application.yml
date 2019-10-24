@@ -24,3 +24,10 @@ endpoints:
 # The store endpoint should be deployed in the same network, so we don't need a config.yml file for it.
 endpointUrl:
   store: http://store:8080/mis/product/
+  retrieve: http://\${RETRIEVE_HOST}:9040/
+  transform: http://\${TRANSFORM_HOST}:9090/transform/
+
+s3:
+  endpointUrl: \${S3_PROVIDER_URL}
+  region: \${S3_REGION}
+  bucket: metacard-quarantine

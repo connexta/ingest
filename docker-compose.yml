@@ -1,7 +1,7 @@
 version: '3.7'
 services:
   ingest:
-    image: ${DOCKER_REGISTRY:-docker.io}/cnxta/ion-ingest
+    image: ${IMAGE_PREFIX}cnxta/ion-ingest
     ports:
       - target: 8080
         published: 9040
@@ -9,6 +9,11 @@ services:
       - target: 10050
         published: 10050
         protocol: tcp
+    environment:
+      TRANSFORM_HOST: ${TRANSFORM_HOST}
+      RETRIEVE_HOST: ${RETRIEVE_HOST}
+      S3_PROVIDER_URL: ${S3_PROVIDER_URL}
+      S3_REGION: ${S3_REGION}    
     networks:
       - cdr
     deploy:
@@ -19,19 +24,9 @@ services:
        target: /secrets/ingest/s3_secret.sec
      - source: s3_access
        target: /secrets/ingest/s3_access.sec
-    configs:
-      - source: ingest_config
-        target: /configs/ingest_config.yml
-      - source: s3_config
-        target: /configs/s3_config.yml
-      - source: transform_config
-        target: /configs/transform_config.yml
     command:
-      - "--spring.config.additional-location=file:/configs/ingest_config.yml"
       - "--s3.secret.file=/secrets/ingest/s3_secret.sec"
       - "--s3.access.file=/secrets/ingest/s3_access.sec"
-      - "--spring.config.additional-location=file:/configs/s3_config.yml"
-      - "--spring.config.additional-location=file:/configs/transform_config.yml"
 networks:
   cdr:
     external: true
@@ -40,10 +35,3 @@ secrets:
     file: s3_secret.sec
   s3_access:
     file: s3_access.sec
-configs:
-  ingest_config:
-    file: ./configs/ingest_config.yml
-  s3_config:
-    file: ./configs/s3_config.yml
-  transform_config:
-    file: ./configs/transform_config.yml
