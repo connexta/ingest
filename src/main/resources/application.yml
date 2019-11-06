@@ -23,4 +23,4 @@ endpoints:
 
 # The store endpoint should be deployed in the same network, so we don't need a config.yml file for it.
 endpointUrl:
-  store: http://store:8080/mis/product/
+  store: http://store:8080/dataset/
