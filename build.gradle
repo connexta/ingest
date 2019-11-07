@@ -9,7 +9,7 @@ buildscript {
     ext {
         junitJupiterVersion = "5.5.2"
         lombokVersion = "1.18.10"
-        springBootVersion = "2.2.0.RELEASE"
+        springBootVersion = "2.2.1.RELEASE"
         springfoxSwaggerVersion = "2.9.2"
         transformApiVersion = "0.2.0"
     }
