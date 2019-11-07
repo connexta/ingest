@@ -60,7 +60,7 @@ public class IngestServiceImplUnitTests {
     final String fileName = "fileName";
     final long metacardFileSize = 1L;
     final InputStream metacardInputStream = mock(InputStream.class);
-    final URI location = new URI("http://localhost:9041/mis/product/1234");
+    final URI location = new URI("http://localhost:9041/dataset/1234");
     when(mockStoreClient.store(fileSize, mimeType, inputStream, fileName)).thenReturn(location);
 
     // when
@@ -164,7 +164,7 @@ public class IngestServiceImplUnitTests {
     final long metacardFileSize = 1L;
     final InputStream metacardInputStream = mock(InputStream.class);
     when(mockStoreClient.store(fileSize, mimeType, inputStream, fileName))
-        .thenReturn(new URI("http://localhost:9041/mis/product/1234"));
+        .thenReturn(new URI("http://localhost:9041/dataset/1234"));
 
     final StoreMetacardException storeMetacardException = mock(StoreMetacardException.class);
     doThrow(storeMetacardException)
@@ -205,7 +205,7 @@ public class IngestServiceImplUnitTests {
     final long metacardFileSize = 1L;
     final InputStream metacardInputStream = mock(InputStream.class);
     when(mockStoreClient.store(fileSize, mimeType, inputStream, fileName))
-        .thenReturn(new URI("http://localhost:9041/mis/product/1234"));
+        .thenReturn(new URI("http://localhost:9041/dataset/1234"));
 
     final Throwable throwable = mock(StoreException.class);
     doThrow(throwable)
@@ -250,7 +250,7 @@ public class IngestServiceImplUnitTests {
     final long metacardFileSize = 1L;
     final InputStream metacardInputStream = mock(InputStream.class);
     when(mockStoreClient.store(fileSize, mimeType, inputStream, fileName))
-        .thenReturn(new URI("http://localhost:9041/mis/product/1234"));
+        .thenReturn(new URI("http://localhost:9041/dataset/1234"));
 
     // when
     final StoreMetacardException storeMetacardException =
@@ -289,7 +289,7 @@ public class IngestServiceImplUnitTests {
     final String fileName = "fileName";
     final long metacardFileSize = 1L;
     final InputStream metacardInputStream = mock(InputStream.class);
-    final URI location = new URI("http://localhost:9041/mis/product/1234");
+    final URI location = new URI("http://localhost:9041/dataset/1234");
     when(mockStoreClient.store(fileSize, mimeType, inputStream, fileName)).thenReturn(location);
 
     final TransformException transformException = mock(TransformException.class);
