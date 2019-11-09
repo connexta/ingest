@@ -55,7 +55,7 @@ public class StoreClient {
 
     final HttpHeaders headers = new HttpHeaders();
     // TODO inject this like we do for the transformApiVersion in TransformClient
-    headers.set("Accept-Version", "0.2.0");
+    headers.set("Accept-Version", "0.3.0");
 
     final HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
     log.info("Sending POST request to {}: {}", storeEndpoint, request);
