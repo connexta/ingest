@@ -1,3 +1,6 @@
+# THIS SERVICE HAS BEEN MERGED INTO ION-STORE https://github.com/connexta/ion-store
+## Ion-Ingest is now ARCHIVED
+
 # Ingest
 [![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=connexta/ion-ingest)](https://dependabot.com)
 [![Known Vulnerabilities](https://snyk.io/test/github/connexta/ion-ingest/badge.svg)](https://snyk.io/test/github/connexta/ion-ingest)
